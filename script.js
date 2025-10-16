@@ -77,12 +77,55 @@ if (codeInput) {
 
 // Window Management
 let windowZIndex = 50
+let windowPositions = []
+
+function findAvailablePosition() {
+  const centerX = window.innerWidth / 2
+  const centerY = (window.innerHeight - 80) / 2
+  
+  // Positions possibles (centre, puis décalées)
+  const positions = [
+    { x: centerX, y: centerY }, // Centre
+    { x: centerX - 50, y: centerY - 50 }, // Haut gauche
+    { x: centerX + 50, y: centerY + 50 }, // Bas droite
+    { x: centerX + 50, y: centerY - 50 }, // Haut droite
+    { x: centerX - 50, y: centerY + 50 }, // Bas gauche
+    { x: centerX - 100, y: centerY }, // Gauche
+    { x: centerX + 100, y: centerY }, // Droite
+  ]
+  
+  // Vérifier quelle position est libre
+  for (const pos of positions) {
+    const isOccupied = windowPositions.some(wp => 
+      Math.abs(wp.x - pos.x) < 100 && Math.abs(wp.y - pos.y) < 100
+    )
+    if (!isOccupied) {
+      return pos
+    }
+  }
+  
+  // Si toutes les positions sont occupées, utiliser une position aléatoire
+  return {
+    x: centerX + (Math.random() - 0.5) * 200,
+    y: centerY + (Math.random() - 0.5) * 200
+  }
+}
 
 function openWindow(windowId) {
   const window = document.getElementById(windowId)
   if (window) {
     window.style.display = "block"
     window.style.animation = "none"
+    
+    // Trouver une position libre
+    const pos = findAvailablePosition()
+    window.style.left = pos.x + 'px'
+    window.style.top = pos.y + 'px'
+    window.style.transform = 'translate(-50%, -50%)'
+    
+    // Enregistrer la position
+    windowPositions.push({ id: windowId, x: pos.x, y: pos.y })
+    
     focusWindow(window)
     setTimeout(() => {
       window.style.animation = ""
@@ -94,6 +137,10 @@ function closeWindow(windowId) {
   const window = document.getElementById(windowId)
   if (window) {
     window.style.animation = "windowDisappear 0.3s cubic-bezier(0.4, 0, 1, 1) forwards"
+    
+    // Supprimer la position de la liste
+    windowPositions = windowPositions.filter(wp => wp.id !== windowId)
+    
     setTimeout(() => {
       window.style.display = "none"
       window.style.animation = ""
@@ -369,60 +416,6 @@ if (urlBar) {
   urlBar.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       navigateToUrl()
-    }
-  })
-}
-
-// Sélection de zone sur le bureau
-let isSelecting = false
-let selectionStart = { x: 0, y: 0 }
-let selectionBox = null
-
-const desktopArea = document.getElementById('desktopArea')
-if (desktopArea) {
-  desktopArea.addEventListener('mousedown', (e) => {
-    if (e.target === desktopArea) {
-      isSelecting = true
-      selectionStart.x = e.clientX
-      selectionStart.y = e.clientY
-      
-      // Créer la boîte de sélection
-      selectionBox = document.createElement('div')
-      selectionBox.className = 'desktop-selection'
-      selectionBox.style.left = selectionStart.x + 'px'
-      selectionBox.style.top = selectionStart.y + 'px'
-      selectionBox.style.width = '0px'
-      selectionBox.style.height = '0px'
-      document.body.appendChild(selectionBox)
-      
-      e.preventDefault()
-    }
-  })
-  
-  document.addEventListener('mousemove', (e) => {
-    if (isSelecting && selectionBox) {
-      const currentX = e.clientX
-      const currentY = e.clientY
-      
-      const left = Math.min(selectionStart.x, currentX)
-      const top = Math.min(selectionStart.y, currentY)
-      const width = Math.abs(currentX - selectionStart.x)
-      const height = Math.abs(currentY - selectionStart.y)
-      
-      selectionBox.style.left = left + 'px'
-      selectionBox.style.top = top + 'px'
-      selectionBox.style.width = width + 'px'
-      selectionBox.style.height = height + 'px'
-    }
-  })
-  
-  document.addEventListener('mouseup', () => {
-    if (isSelecting) {
-      isSelecting = false
-      if (selectionBox) {
-        selectionBox.remove()
-        selectionBox = null
-      }
     }
   })
 }
