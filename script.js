@@ -31,15 +31,47 @@ const timeDisplay = document.getElementById("timeDisplay")
 const codeEntry = document.getElementById("codeEntry")
 const codeInput = document.getElementById("codeInput")
 
+// Détecter si on est sur mobile
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768
+
+// Adapter l'interface selon le device
+if (isMobile) {
+  document.body.classList.add('mobile')
+  // Repositionner les notifications en haut à gauche sur mobile
+  if (notificationsContainer) {
+    notificationsContainer.style.top = '20px'
+    notificationsContainer.style.left = '20px'
+    notificationsContainer.style.right = 'auto'
+    notificationsContainer.style.bottom = 'auto'
+  }
+}
+
 lockscreenContent.addEventListener("click", (e) => {
   if (isLocked && !codeEntry.classList.contains("visible")) {
-    timeDisplay.classList.add("moved-up")
-    codeEntry.classList.add("visible")
-    setTimeout(() => {
-      codeInput.focus()
-    }, 400)
+    if (isMobile) {
+      // Sur mobile : déverrouillage direct avec le capteur digital
+      unlockDevice()
+    } else {
+      // Sur desktop : afficher le champ de saisie
+      timeDisplay.classList.add("moved-up")
+      codeEntry.classList.add("visible")
+      setTimeout(() => {
+        codeInput.focus()
+      }, 400)
+    }
   }
 })
+
+// Capteur digital
+const fingerprintSensor = document.getElementById('fingerprintSensor')
+if (fingerprintSensor) {
+  fingerprintSensor.addEventListener('click', (e) => {
+    if (isLocked && isMobile) {
+      e.stopPropagation()
+      unlockDevice()
+    }
+  })
+}
 
 function unlockDevice() {
   const lockscreen = document.getElementById("lockscreen")
@@ -217,7 +249,7 @@ if (animationsToggle) {
   })
 }
 
-// Make windows draggable
+// Make windows draggable (souris et tactile)
 document.querySelectorAll(".window").forEach((window) => {
   const header = window.querySelector(".window-header")
   let isDragging = false
@@ -228,15 +260,24 @@ document.querySelectorAll(".window").forEach((window) => {
   let xOffset = 0
   let yOffset = 0
 
+  // Événements souris
   header.addEventListener("mousedown", dragStart)
   document.addEventListener("mousemove", drag)
   document.addEventListener("mouseup", dragEnd)
+  
+  // Événements tactiles
+  header.addEventListener("touchstart", dragStart, { passive: false })
+  document.addEventListener("touchmove", drag, { passive: false })
+  document.addEventListener("touchend", dragEnd)
 
   function dragStart(e) {
     if (e.target.closest(".window-controls")) return
 
-    initialX = e.clientX - xOffset
-    initialY = e.clientY - yOffset
+    const clientX = e.clientX || e.touches[0].clientX
+    const clientY = e.clientY || e.touches[0].clientY
+    
+    initialX = clientX - xOffset
+    initialY = clientY - yOffset
 
     if (e.target === header || header.contains(e.target)) {
       isDragging = true
@@ -248,13 +289,18 @@ document.querySelectorAll(".window").forEach((window) => {
   function drag(e) {
     if (isDragging) {
       e.preventDefault()
-      currentX = e.clientX - initialX
-      currentY = e.clientY - initialY
-      xOffset = currentX
-      yOffset = currentY
+      
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX)
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY)
+      
+      if (clientX !== undefined && clientY !== undefined) {
+        currentX = clientX - initialX
+        currentY = clientY - initialY
+        xOffset = currentX
+        yOffset = currentY
 
-      // Utiliser transform pour de meilleures performances
-      window.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`
+        window.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`
+      }
     }
   }
 
