@@ -300,6 +300,36 @@ document.querySelectorAll(".window").forEach((window) => {
   }
 })
 
+// Window Resizing
+document.querySelectorAll('.window').forEach(window => {
+  const resizeHandle = window.querySelector('.resize-se')
+  if (resizeHandle) {
+    let isResizing = false
+    let startX, startY, startWidth, startHeight
+
+    resizeHandle.addEventListener('mousedown', (e) => {
+      isResizing = true
+      startX = e.clientX
+      startY = e.clientY
+      startWidth = parseInt(document.defaultView.getComputedStyle(window).width, 10)
+      startHeight = parseInt(document.defaultView.getComputedStyle(window).height, 10)
+      e.preventDefault()
+    })
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return
+      const width = startWidth + e.clientX - startX
+      const height = startHeight + e.clientY - startY
+      window.style.width = Math.max(300, width) + 'px'
+      window.style.height = Math.max(200, height) + 'px'
+    })
+
+    document.addEventListener('mouseup', () => {
+      isResizing = false
+    })
+  }
+})
+
 // Créer le conteneur de notifications
 let notificationsContainer = document.querySelector('.notifications-container')
 if (!notificationsContainer) {
