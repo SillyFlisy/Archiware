@@ -262,3 +262,41 @@ bounceStyle.textContent = `
     }
 `
 document.head.appendChild(bounceStyle)
+
+// Fonctions de navigation web
+function navigateToUrl() {
+  const urlBar = document.getElementById('urlBar')
+  const webview = document.getElementById('webview')
+  let url = urlBar.value.trim()
+  
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url
+  }
+  
+  webview.src = url
+}
+
+function goBack() {
+  const webview = document.getElementById('webview')
+  webview.contentWindow.history.back()
+}
+
+function goForward() {
+  const webview = document.getElementById('webview')
+  webview.contentWindow.history.forward()
+}
+
+function refreshPage() {
+  const webview = document.getElementById('webview')
+  webview.src = webview.src
+}
+
+// Navigation avec Entrée
+const urlBar = document.getElementById('urlBar')
+if (urlBar) {
+  urlBar.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      navigateToUrl()
+    }
+  })
+}
