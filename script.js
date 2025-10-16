@@ -195,6 +195,14 @@ document.querySelectorAll(".window").forEach((window) => {
   }
 })
 
+// Créer le conteneur de notifications
+let notificationsContainer = document.querySelector('.notifications-container')
+if (!notificationsContainer) {
+  notificationsContainer = document.createElement('div')
+  notificationsContainer.className = 'notifications-container'
+  document.body.appendChild(notificationsContainer)
+}
+
 // Fonction pour afficher les notifications
 function showNotification(message) {
   // Jouer le son de notification
@@ -215,7 +223,7 @@ function showNotification(message) {
     </div>
   `
 
-  document.body.appendChild(notification)
+  notificationsContainer.appendChild(notification)
 
   // Animation d'apparition
   setTimeout(() => notification.classList.add('show'), 100)
@@ -223,7 +231,11 @@ function showNotification(message) {
   // Suppression après 3 secondes
   setTimeout(() => {
     notification.classList.remove('show')
-    setTimeout(() => notification.remove(), 300)
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove()
+      }
+    }, 400)
   }, 3000)
 }
 
