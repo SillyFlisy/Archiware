@@ -76,11 +76,14 @@ if (codeInput) {
 }
 
 // Window Management
+let windowZIndex = 50
+
 function openWindow(windowId) {
   const window = document.getElementById(windowId)
   if (window) {
     window.style.display = "block"
     window.style.animation = "none"
+    focusWindow(window)
     setTimeout(() => {
       window.style.animation = ""
     }, 10)
@@ -94,9 +97,30 @@ function closeWindow(windowId) {
     setTimeout(() => {
       window.style.display = "none"
       window.style.animation = ""
+      window.classList.remove('focused')
     }, 300)
   }
 }
+
+function focusWindow(window) {
+  // Retirer le focus de toutes les fenêtres
+  document.querySelectorAll('.window').forEach(w => {
+    w.classList.remove('focused')
+  })
+  
+  // Donner le focus à la fenêtre cliquée
+  window.classList.add('focused')
+  window.style.zIndex = ++windowZIndex
+}
+
+// Ajouter les événements de clic sur les fenêtres
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.window').forEach(window => {
+    window.addEventListener('mousedown', () => {
+      focusWindow(window)
+    })
+  })
+})
 
 const style = document.createElement("style")
 style.textContent = `
@@ -345,6 +369,60 @@ if (urlBar) {
   urlBar.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       navigateToUrl()
+    }
+  })
+}
+
+// Sélection de zone sur le bureau
+let isSelecting = false
+let selectionStart = { x: 0, y: 0 }
+let selectionBox = null
+
+const desktopArea = document.getElementById('desktopArea')
+if (desktopArea) {
+  desktopArea.addEventListener('mousedown', (e) => {
+    if (e.target === desktopArea) {
+      isSelecting = true
+      selectionStart.x = e.clientX
+      selectionStart.y = e.clientY
+      
+      // Créer la boîte de sélection
+      selectionBox = document.createElement('div')
+      selectionBox.className = 'desktop-selection'
+      selectionBox.style.left = selectionStart.x + 'px'
+      selectionBox.style.top = selectionStart.y + 'px'
+      selectionBox.style.width = '0px'
+      selectionBox.style.height = '0px'
+      document.body.appendChild(selectionBox)
+      
+      e.preventDefault()
+    }
+  })
+  
+  document.addEventListener('mousemove', (e) => {
+    if (isSelecting && selectionBox) {
+      const currentX = e.clientX
+      const currentY = e.clientY
+      
+      const left = Math.min(selectionStart.x, currentX)
+      const top = Math.min(selectionStart.y, currentY)
+      const width = Math.abs(currentX - selectionStart.x)
+      const height = Math.abs(currentY - selectionStart.y)
+      
+      selectionBox.style.left = left + 'px'
+      selectionBox.style.top = top + 'px'
+      selectionBox.style.width = width + 'px'
+      selectionBox.style.height = height + 'px'
+    }
+  })
+  
+  document.addEventListener('mouseup', () => {
+    if (isSelecting) {
+      isSelecting = false
+      if (selectionBox) {
+        selectionBox.remove()
+        selectionBox = null
+      }
     }
   })
 }
