@@ -221,8 +221,8 @@ if (animationsToggle) {
 document.querySelectorAll(".window").forEach((window) => {
   const header = window.querySelector(".window-header")
   let isDragging = false
-  let currentX
-  let currentY
+  let currentX = 0
+  let currentY = 0
   let initialX
   let initialY
   let xOffset = 0
@@ -240,6 +240,8 @@ document.querySelectorAll(".window").forEach((window) => {
 
     if (e.target === header || header.contains(e.target)) {
       isDragging = true
+      window.classList.add('dragging')
+      focusWindow(window)
     }
   }
 
@@ -251,18 +253,18 @@ document.querySelectorAll(".window").forEach((window) => {
       xOffset = currentX
       yOffset = currentY
 
-      setTranslate(currentX, currentY, window)
+      // Utiliser transform pour de meilleures performances
+      window.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`
     }
   }
 
   function dragEnd(e) {
-    initialX = currentX
-    initialY = currentY
-    isDragging = false
-  }
-
-  function setTranslate(xPos, yPos, el) {
-    el.style.transform = `translate(calc(-50% + ${xPos}px), calc(-50% + ${yPos}px))`
+    if (isDragging) {
+      initialX = currentX
+      initialY = currentY
+      isDragging = false
+      window.classList.remove('dragging')
+    }
   }
 })
 
