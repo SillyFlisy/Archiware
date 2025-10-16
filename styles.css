@@ -1264,3 +1264,69 @@ body {
   overflow: auto;
   padding: 24px;
 }
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .left-island {
+    display: none;
+  }
+  
+  .notifications-container {
+    top: 20px;
+    left: 20px;
+    right: auto;
+    bottom: auto;
+  }
+  
+  .fingerprint-sensor {
+    display: flex !important;
+  }
+  
+  .code-entry {
+    display: none !important;
+  }
+}
+
+/* Fingerprint Sensor */
+.fingerprint-sensor {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 60px;
+  cursor: pointer;
+  animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.5s backwards;
+}
+
+.fingerprint-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px);
+  border: 2px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fingerprintPulse 2s ease-in-out infinite;
+}
+
+.fingerprint-icon:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.fingerprint-text {
+  font-size: 16px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+@keyframes fingerprintPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+  }
+}
