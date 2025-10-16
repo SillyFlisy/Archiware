@@ -26,20 +26,6 @@ function updateTime() {
 updateTime()
 setInterval(updateTime, 1000)
 
-let enteredCode = ""
-const maxCodeLength = 4
-
-function updateCodeDots() {
-  const dots = document.querySelectorAll(".code-dot")
-  dots.forEach((dot, index) => {
-    if (index < enteredCode.length) {
-      dot.classList.add("filled")
-    } else {
-      dot.classList.remove("filled")
-    }
-  })
-}
-
 function unlockDevice() {
   const lockscreen = document.getElementById("lockscreen")
   const desktop = document.getElementById("desktop")
@@ -60,81 +46,20 @@ function unlockDevice() {
   }, 800)
 }
 
-function handleCodeEntry(num) {
-  if (enteredCode.length < maxCodeLength) {
-    enteredCode += num
-
-    // Add haptic feedback with animation
-    const dots = document.querySelectorAll(".code-dot")
-    const currentDot = dots[enteredCode.length - 1]
-    currentDot.style.animation = "none"
-    setTimeout(() => {
-      currentDot.style.animation = ""
-    }, 10)
-
-    updateCodeDots()
-
-    // Auto-submit when 4 digits entered
-    if (enteredCode.length === maxCodeLength) {
-      setTimeout(() => {
-        handleCodeSubmit()
-      }, 200)
-    }
-  }
-}
-
-function handleCodeDelete() {
-  if (enteredCode.length > 0) {
-    enteredCode = enteredCode.slice(0, -1)
-    updateCodeDots()
-    document.getElementById("codeMessage").textContent = "Entrez le code"
-    document.getElementById("codeMessage").classList.remove("error")
-  }
-}
-
-function handleCodeSubmit() {
-  // Accept any code (as requested)
-  if (enteredCode.length === maxCodeLength) {
-    unlockDevice()
-  }
-}
-
-// Numpad event listeners
-document.querySelectorAll(".numpad-btn").forEach((btn) => {
-  btn.addEventListener("click", function () {
-    const num = this.getAttribute("data-num")
-    const action = this.getAttribute("data-action")
-
-    // Button press animation
-    this.style.transform = "scale(0.9)"
-    setTimeout(() => {
-      this.style.transform = ""
-    }, 150)
-
-    if (num) {
-      handleCodeEntry(num)
-    } else if (action === "delete") {
-      handleCodeDelete()
-    } else if (action === "enter") {
-      handleCodeSubmit()
+const codeInput = document.getElementById("codeInput")
+if (codeInput) {
+  codeInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      unlockDevice()
     }
   })
-})
 
-// Keyboard support
-document.addEventListener("keydown", (e) => {
-  const lockscreen = document.getElementById("lockscreen")
-  if (!lockscreen.classList.contains("active")) return
-
-  if (e.key >= "0" && e.key <= "9") {
-    handleCodeEntry(e.key)
-  } else if (e.key === "Backspace") {
-    e.preventDefault()
-    handleCodeDelete()
-  } else if (e.key === "Enter") {
-    handleCodeSubmit()
-  }
-})
+  // Auto-focus input when page loads
+  setTimeout(() => {
+    codeInput.focus()
+  }, 500)
+}
 
 // Window Management
 function openWindow(windowId) {
@@ -243,23 +168,5 @@ bounceStyle.textContent = `
     }
 `
 document.head.appendChild(bounceStyle)
-
-const codeInput = document.getElementById("codeInput")
-
-if (codeInput) {
-  codeInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      unlockDevice()
-    }
-  })
-
-  // Auto-focus input when lockscreen is active
-  const lockscreen = document.getElementById("lockscreen")
-  if (lockscreen && lockscreen.classList.contains("active")) {
-    setTimeout(() => {
-      codeInput.focus()
-    }, 500)
-  }
-}
 
 console.log("[v0] WebOS initialized successfully")
