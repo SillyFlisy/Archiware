@@ -34,24 +34,9 @@ const codeInput = document.getElementById("codeInput")
 // Détecter si on est sur mobile
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768
 
-// Adapter l'interface selon le device
-if (isMobile) {
-  document.body.classList.add('mobile')
-  // Repositionner les notifications en haut à gauche sur mobile
-  if (notificationsContainer) {
-    notificationsContainer.style.top = '20px'
-    notificationsContainer.style.left = '20px'
-    notificationsContainer.style.right = 'auto'
-    notificationsContainer.style.bottom = 'auto'
-  }
-}
-
 lockscreenContent.addEventListener("click", (e) => {
   if (isLocked && !codeEntry.classList.contains("visible")) {
-    if (isMobile) {
-      // Sur mobile : déverrouillage direct avec le capteur digital
-      unlockDevice()
-    } else {
+    if (!isMobile) {
       // Sur desktop : afficher le champ de saisie
       timeDisplay.classList.add("moved-up")
       codeEntry.classList.add("visible")
@@ -62,16 +47,28 @@ lockscreenContent.addEventListener("click", (e) => {
   }
 })
 
-// Capteur digital
-const fingerprintSensor = document.getElementById('fingerprintSensor')
-if (fingerprintSensor) {
-  fingerprintSensor.addEventListener('click', (e) => {
-    if (isLocked && isMobile) {
-      e.stopPropagation()
-      unlockDevice()
-    }
-  })
-}
+// Capteur digital - initialiser après le DOM
+document.addEventListener('DOMContentLoaded', () => {
+  const fingerprintSensor = document.getElementById('fingerprintSensor')
+  if (fingerprintSensor && isMobile) {
+    fingerprintSensor.addEventListener('click', (e) => {
+      console.log('Capteur cliqué')
+      if (isLocked) {
+        e.stopPropagation()
+        unlockDevice()
+      }
+    })
+    
+    fingerprintSensor.addEventListener('touchstart', (e) => {
+      console.log('Capteur touché')
+      if (isLocked) {
+        e.preventDefault()
+        e.stopPropagation()
+        unlockDevice()
+      }
+    })
+  }
+})
 
 function unlockDevice() {
   const lockscreen = document.getElementById("lockscreen")
