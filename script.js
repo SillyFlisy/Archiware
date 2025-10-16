@@ -263,32 +263,68 @@ bounceStyle.textContent = `
 `
 document.head.appendChild(bounceStyle)
 
-// Fonctions de navigation web
+// Navigation simulée
+let currentSite = 'google'
+let browserHistory = ['google']
+let historyIndex = 0
+
 function navigateToUrl() {
   const urlBar = document.getElementById('urlBar')
-  const webview = document.getElementById('webview')
-  let url = urlBar.value.trim()
+  let url = urlBar.value.trim().toLowerCase()
   
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    url = 'https://' + url
+  if (url.includes('youtube')) {
+    loadSite('youtube')
+  } else if (url.includes('github')) {
+    loadSite('github')
+  } else if (url.includes('stackoverflow')) {
+    loadSite('stackoverflow')
+  } else {
+    loadSite('google')
   }
+}
+
+function loadSite(siteName) {
+  document.querySelectorAll('.fake-site').forEach(site => {
+    site.style.display = 'none'
+  })
   
-  webview.src = url
+  document.getElementById(siteName).style.display = 'block'
+  currentSite = siteName
+  
+  // Mettre à jour l'historique
+  if (historyIndex < browserHistory.length - 1) {
+    browserHistory = browserHistory.slice(0, historyIndex + 1)
+  }
+  browserHistory.push(siteName)
+  historyIndex = browserHistory.length - 1
+  
+  // Mettre à jour l'URL
+  const urlBar = document.getElementById('urlBar')
+  const urls = {
+    google: 'https://www.google.com',
+    youtube: 'https://www.youtube.com',
+    github: 'https://www.github.com',
+    stackoverflow: 'https://stackoverflow.com'
+  }
+  urlBar.value = urls[siteName]
 }
 
 function goBack() {
-  const webview = document.getElementById('webview')
-  webview.contentWindow.history.back()
+  if (historyIndex > 0) {
+    historyIndex--
+    loadSite(browserHistory[historyIndex])
+  }
 }
 
 function goForward() {
-  const webview = document.getElementById('webview')
-  webview.contentWindow.history.forward()
+  if (historyIndex < browserHistory.length - 1) {
+    historyIndex++
+    loadSite(browserHistory[historyIndex])
+  }
 }
 
 function refreshPage() {
-  const webview = document.getElementById('webview')
-  webview.src = webview.src
+  loadSite(currentSite)
 }
 
 // Navigation avec Entrée
