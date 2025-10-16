@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebOS - Modern Operating System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Lockscreen -->
+    <div id="lockscreen" class="lockscreen active">
+        <div class="liquid-bg">
+            <div class="liquid-orb orb-1"></div>
+            <div class="liquid-orb orb-2"></div>
+            <div class="liquid-orb orb-3"></div>
+        </div>
+        
+        <div class="lockscreen-content">
+            <div class="time-display">
+                <div class="time" id="lockTime">10:15</div>
+                <div class="date" id="lockDate">Jeudi 16 Octobre</div>
+            </div>
+            
+            <div class="unlock-indicator">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+                <span>Glissez pour déverrouiller</span>
+            </div>
+        </div>
+        
+        <div class="swipe-area" id="swipeArea"></div>
+    </div>
+
+    <!-- Desktop -->
+    <div id="desktop" class="desktop">
+        <div class="liquid-bg">
+            <div class="liquid-orb orb-1"></div>
+            <div class="liquid-orb orb-2"></div>
+            <div class="liquid-orb orb-3"></div>
+        </div>
+
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <div class="user-profile">
+                    <div class="avatar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                    </div>
+                    <span class="username">zetsukae</span>
+                </div>
+                <button class="top-bar-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="top-bar-right">
+                <div class="status-icons">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/>
+                    </svg>
+                    <span class="time-display" id="topBarTime">10:15</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Windows Container -->
+        <div class="windows-container" id="windowsContainer">
+            <!-- Settings Window -->
+            <div class="window" id="settingsWindow" style="display: none;">
+                <div class="window-header">
+                    <div class="window-title">Paramètres</div>
+                    <div class="window-controls">
+                        <button class="window-btn minimize-btn">
+                            <svg width="12" height="12" viewBox="0 0 12 12">
+                                <line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </button>
+                        <button class="window-btn maximize-btn">
+                            <svg width="12" height="12" viewBox="0 0 12 12">
+                                <rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </button>
+                        <button class="window-btn close-btn" onclick="closeWindow('settingsWindow')">
+                            <svg width="12" height="12" viewBox="0 0 12 12">
+                                <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="window-content">
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <div class="setting-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                                </svg>
+                            </div>
+                            <div class="setting-label">Compte</div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                                </svg>
+                            </div>
+                            <div class="setting-label">Réseau</div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                                </svg>
+                            </div>
+                            <div class="setting-label">Notifications</div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                                </svg>
+                            </div>
+                            <div class="setting-label">Système</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Browser Window -->
+            <div class="window" id="browserWindow" style="display: none;">
+                <div class="window-header">
+                    <div class="window-title">Navigateur</div>
+                    <div class="window-controls">
+                        <button class="window-btn minimize-btn">
+                            <svg width="12" height="12" viewBox="0 0 12 12">
+                                <line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </button>
+                        <button class="window-btn maximize-btn">
+                            <svg width="12" height="12" viewBox="0 0 12 12">
+                                <rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </button>
+                        <button class="window-btn close-btn" onclick="closeWindow('browserWindow')">
+                            <svg width="12" height="12" viewBox="0 0 12 12">
+                                <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="window-content">
+                    <div class="browser-bar">
+                        <input type="text" class="url-bar" placeholder="Rechercher ou entrer une URL..." value="https://example.com">
+                    </div>
+                    <div class="browser-content">
+                        <div class="browser-placeholder">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            <p>Bienvenue sur le Web</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dock -->
+        <div class="dock">
+            <div class="dock-container">
+                <button class="dock-icon" onclick="openWindow('browserWindow')" title="Navigateur">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" fill="none" stroke="white" stroke-width="1.5"/>
+                    </svg>
+                </button>
+                
+                <button class="dock-icon" title="Messages">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                    </svg>
+                </button>
+                
+                <button class="dock-icon" title="Photos">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                    </svg>
+                </button>
+                
+                <button class="dock-icon" title="Musique">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
+                </button>
+                
+                <button class="dock-icon" onclick="openWindow('settingsWindow')" title="Paramètres">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                    </svg>
+                </button>
+                
+                <button class="dock-icon" title="App Store">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5.97 4.06L14.09 8l-1.06.94L12 7.4l-1.03 1.54L9.91 8l1.06-.94L9.5 5.5l1.47.53L12 4.56l1.03 1.47 1.47-.53-1.47 1.56zm-5.78 9.69L6 13l3.75-1.5L12 9l2.25 2.5L18 13l-1.25 3.75-3.75 1.5L12 21l-1.25-2.75-3.75-1.5z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
