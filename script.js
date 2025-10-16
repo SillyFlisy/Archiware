@@ -302,32 +302,65 @@ document.querySelectorAll(".window").forEach((window) => {
 
 // Window Resizing
 document.querySelectorAll('.window').forEach(window => {
-  const resizeHandle = window.querySelector('.resize-se')
-  if (resizeHandle) {
-    let isResizing = false
-    let startX, startY, startWidth, startHeight
+  const resizeHandles = window.querySelectorAll('.resize-handle')
+  let isResizing = false
+  let resizeType = ''
+  let startX, startY, startWidth, startHeight, startLeft, startTop
 
-    resizeHandle.addEventListener('mousedown', (e) => {
+  resizeHandles.forEach(handle => {
+    handle.addEventListener('mousedown', (e) => {
       isResizing = true
+      resizeType = handle.className.split(' ')[1]
       startX = e.clientX
       startY = e.clientY
-      startWidth = parseInt(document.defaultView.getComputedStyle(window).width, 10)
-      startHeight = parseInt(document.defaultView.getComputedStyle(window).height, 10)
+      
+      const rect = window.getBoundingClientRect()
+      startWidth = rect.width
+      startHeight = rect.height
+      startLeft = rect.left
+      startTop = rect.top
+      
       e.preventDefault()
+      e.stopPropagation()
     })
+  })
 
-    document.addEventListener('mousemove', (e) => {
-      if (!isResizing) return
-      const width = startWidth + e.clientX - startX
-      const height = startHeight + e.clientY - startY
-      window.style.width = Math.max(300, width) + 'px'
-      window.style.height = Math.max(200, height) + 'px'
-    })
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return
+    
+    const deltaX = e.clientX - startX
+    const deltaY = e.clientY - startY
+    
+    let newWidth = startWidth
+    let newHeight = startHeight
+    let newLeft = startLeft
+    let newTop = startTop
+    
+    if (resizeType.includes('e')) newWidth = startWidth + deltaX
+    if (resizeType.includes('w')) {
+      newWidth = startWidth - deltaX
+      newLeft = startLeft + deltaX
+    }
+    if (resizeType.includes('s')) newHeight = startHeight + deltaY
+    if (resizeType.includes('n')) {
+      newHeight = startHeight - deltaY
+      newTop = startTop + deltaY
+    }
+    
+    newWidth = Math.max(300, newWidth)
+    newHeight = Math.max(200, newHeight)
+    
+    window.style.width = newWidth + 'px'
+    window.style.height = newHeight + 'px'
+    window.style.left = newLeft + 'px'
+    window.style.top = newTop + 'px'
+    window.style.transform = 'none'
+  })
 
-    document.addEventListener('mouseup', () => {
-      isResizing = false
-    })
-  }
+  document.addEventListener('mouseup', () => {
+    isResizing = false
+    resizeType = ''
+  })
 })
 
 // Créer le conteneur de notifications
