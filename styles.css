@@ -1343,27 +1343,73 @@ body {
     transform: scale(1.05);
   }
 }
-/* Resize Handle */
+/* Resize Handles */
 .resize-handle {
   position: absolute;
   background: transparent;
+  z-index: 10;
+}
+
+.resize-n {
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 5px;
+  cursor: n-resize;
+}
+
+.resize-s {
+  bottom: 0;
+  left: 10px;
+  right: 10px;
+  height: 5px;
+  cursor: s-resize;
+}
+
+.resize-e {
+  top: 10px;
+  right: 0;
+  bottom: 10px;
+  width: 5px;
+  cursor: e-resize;
+}
+
+.resize-w {
+  top: 10px;
+  left: 0;
+  bottom: 10px;
+  width: 5px;
+  cursor: w-resize;
+}
+
+.resize-ne {
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  cursor: ne-resize;
+}
+
+.resize-nw {
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nw-resize;
 }
 
 .resize-se {
   bottom: 0;
   right: 0;
-  width: 20px;
-  height: 20px;
+  width: 10px;
+  height: 10px;
   cursor: se-resize;
 }
 
-.resize-se::after {
-  content: '';
-  position: absolute;
-  bottom: 3px;
-  right: 3px;
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-bottom: 8px solid rgba(255, 255, 255, 0.3);
+.resize-sw {
+  bottom: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  cursor: sw-resize;
 }
