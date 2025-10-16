@@ -531,8 +531,8 @@ if (terminalInput) {
 // Raccourci clavier T pour ouvrir le terminal
 document.addEventListener('keydown', (e) => {
   if (e.key.toLowerCase() === 't' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-    // Vérifier qu'on n'est pas dans un champ de saisie
-    if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+    // Vérifier qu'on n'est pas dans un champ de saisie ET qu'on est sur le desktop
+    if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName) && !isLocked) {
       e.preventDefault()
       openWindow('terminalWindow')
       setTimeout(() => {
