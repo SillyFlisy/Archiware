@@ -191,6 +191,19 @@ document.querySelectorAll(".window").forEach((window) => {
   }
 })
 
+// Island interactions
+function showUserMenu() {
+  alert("Menu utilisateur - Fonctionnalité à venir !")
+}
+
+function showAppGrid() {
+  alert("Grille d'applications - Fonctionnalité à venir !")
+}
+
+function showControlCenter() {
+  alert("Centre de contrôle - Fonctionnalité à venir !")
+}
+
 // Dock icon bounce effect
 document.querySelectorAll(".dock-icon").forEach((icon) => {
   icon.addEventListener("click", function () {
