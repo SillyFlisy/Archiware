@@ -19,6 +19,17 @@ body {
   width: 100vw;
   height: 100vh;
   color: var(--text-primary);
+  user-select: none;
+}
+
+::selection {
+  background: rgba(192, 132, 252, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background: rgba(192, 132, 252, 0.3);
+  color: white;
 }
 
 /* Liquid Background */
@@ -359,6 +370,14 @@ body {
 
 .right-island {
   right: 20px;
+}
+
+.right-island .status-icons svg {
+  opacity: 0.6;
+}
+
+.right-island .time-display {
+  opacity: 0.8;
 }
 
 @keyframes slideDown {
