@@ -421,3 +421,123 @@ if (urlBar) {
     }
   })
 }
+
+// Terminal
+let terminalHistory = []
+let historyIndex = -1
+
+const terminalCommands = {
+  help: () => {
+    return `Commandes disponibles:
+  help - Affiche cette aide
+  clear - Efface l'écran
+  date - Affiche la date et l'heure
+  whoami - Affiche l'utilisateur actuel
+  ls - Liste les fichiers
+  pwd - Affiche le répertoire courant
+  echo [texte] - Affiche le texte
+  neofetch - Informations système`
+  },
+  clear: () => {
+    document.getElementById('terminalOutput').innerHTML = ''
+    return ''
+  },
+  date: () => new Date().toLocaleString('fr-FR'),
+  whoami: () => 'zetsukae',
+  ls: () => 'Desktop  Documents  Downloads  Pictures  Videos',
+  pwd: () => '/home/zetsukae',
+  echo: (args) => args.join(' '),
+  neofetch: () => {
+    return `        ██████████████████          zetsukae@archiware
+      ██                  ██        ──────────────────
+    ██                      ██      OS: ArchiwareOS Web
+  ██          ████            ██    Kernel: WebKit
+██            ████              ██  Shell: ArchiShell
+██                              ██  Terminal: ArchiTerm
+██            ████              ██  CPU: JavaScript V8
+  ██          ████            ██    Memory: Unlimited
+    ██                      ██      
+      ██                  ██        
+        ██████████████████          `
+  }
+}
+
+function executeCommand(input) {
+  const parts = input.trim().split(' ')
+  const command = parts[0].toLowerCase()
+  const args = parts.slice(1)
+  
+  if (terminalCommands[command]) {
+    return terminalCommands[command](args)
+  } else if (command === '') {
+    return ''
+  } else {
+    return `Commande non trouvée: ${command}. Tapez 'help' pour voir les commandes disponibles.`
+  }
+}
+
+function addTerminalLine(text, className = '') {
+  const output = document.getElementById('terminalOutput')
+  const line = document.createElement('div')
+  line.className = `terminal-line ${className}`
+  line.textContent = text
+  output.appendChild(line)
+  output.scrollTop = output.scrollHeight
+}
+
+// Terminal input handler
+const terminalInput = document.getElementById('terminalInput')
+if (terminalInput) {
+  terminalInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const input = terminalInput.value
+      
+      // Afficher la commande
+      addTerminalLine(`user@archiware:~$ ${input}`)
+      
+      // Exécuter la commande
+      if (input.trim()) {
+        terminalHistory.push(input)
+        historyIndex = terminalHistory.length
+        
+        const result = executeCommand(input)
+        if (result) {
+          result.split('\n').forEach(line => {
+            addTerminalLine(line)
+          })
+        }
+      }
+      
+      terminalInput.value = ''
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (historyIndex > 0) {
+        historyIndex--
+        terminalInput.value = terminalHistory[historyIndex]
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (historyIndex < terminalHistory.length - 1) {
+        historyIndex++
+        terminalInput.value = terminalHistory[historyIndex]
+      } else {
+        historyIndex = terminalHistory.length
+        terminalInput.value = ''
+      }
+    }
+  })
+}
+
+// Raccourci clavier T pour ouvrir le terminal
+document.addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 't' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    // Vérifier qu'on n'est pas dans un champ de saisie
+    if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+      e.preventDefault()
+      openWindow('terminalWindow')
+      setTimeout(() => {
+        terminalInput.focus()
+      }, 100)
+    }
+  }
+})
