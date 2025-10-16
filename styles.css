@@ -7,11 +7,11 @@
 :root {
   --primary-purple: #c084fc;
   --secondary-pink: #f0abfc;
-  --glass-bg: rgba(255, 255, 255, 0.15);
-  --glass-border: rgba(255, 255, 255, 0.25);
+  --glass-bg: rgba(0, 0, 0, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.2);
   --text-primary: rgba(255, 255, 255, 0.95);
   --text-secondary: rgba(255, 255, 255, 0.7);
-  --frost-bg: rgba(255, 255, 255, 0.12);
+  --frost-bg: rgba(0, 0, 0, 0.3);
 }
 
 body {
@@ -361,9 +361,9 @@ body {
 }
 
 .island:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.4);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .left-island {
@@ -432,7 +432,7 @@ body {
 }
 
 .island-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   transform: scale(1.05);
 }
 
