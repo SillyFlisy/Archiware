@@ -26,78 +26,117 @@ function updateTime() {
 updateTime()
 setInterval(updateTime, 1000)
 
-// Lockscreen Swipe to Unlock
-const swipeArea = document.getElementById("swipeArea")
-const lockscreen = document.getElementById("lockscreen")
-const desktop = document.getElementById("desktop")
+let enteredCode = ""
+const maxCodeLength = 4
 
-let startY = 0
-let currentY = 0
-let isDragging = false
-
-function handleTouchStart(e) {
-  startY = e.touches ? e.touches[0].clientY : e.clientY
-  isDragging = true
-  swipeArea.style.cursor = "grabbing"
+function updateCodeDots() {
+  const dots = document.querySelectorAll(".code-dot")
+  dots.forEach((dot, index) => {
+    if (index < enteredCode.length) {
+      dot.classList.add("filled")
+    } else {
+      dot.classList.remove("filled")
+    }
+  })
 }
 
-function handleTouchMove(e) {
-  if (!isDragging) return
+function unlockDevice() {
+  const lockscreen = document.getElementById("lockscreen")
+  const desktop = document.getElementById("desktop")
 
-  currentY = e.touches ? e.touches[0].clientY : e.clientY
-  const deltaY = startY - currentY
+  // Unlock animation
+  lockscreen.style.transition = "opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)"
+  lockscreen.style.opacity = "0"
+  lockscreen.style.transform = "scale(0.9)"
 
-  if (deltaY > 0) {
-    const opacity = Math.max(0, 1 - deltaY / 300)
-    const scale = Math.max(0.9, 1 - deltaY / 1000)
-    lockscreen.style.opacity = opacity
-    lockscreen.style.transform = `scale(${scale})`
-  }
-}
-
-function handleTouchEnd(e) {
-  if (!isDragging) return
-
-  const deltaY = startY - currentY
-
-  if (deltaY > 150) {
-    // Unlock animation
-    lockscreen.style.transition =
-      "opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
-    lockscreen.style.opacity = "0"
-    lockscreen.style.transform = "scale(0.8)"
-
-    setTimeout(() => {
-      lockscreen.classList.remove("active")
-      lockscreen.style.transition = ""
-      lockscreen.style.transform = ""
-      desktop.classList.add("active")
-    }, 600)
-  } else {
-    // Reset animation
-    lockscreen.style.transition =
-      "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+  setTimeout(() => {
+    lockscreen.classList.remove("active")
+    lockscreen.style.transition = ""
+    lockscreen.style.transform = ""
     lockscreen.style.opacity = "1"
-    lockscreen.style.transform = "scale(1)"
-
-    setTimeout(() => {
-      lockscreen.style.transition = ""
-    }, 400)
-  }
-
-  isDragging = false
-  swipeArea.style.cursor = "grab"
+    desktop.classList.add("active")
+    enteredCode = ""
+    updateCodeDots()
+    document.getElementById("codeMessage").textContent = "Entrez le code"
+    document.getElementById("codeMessage").classList.remove("error")
+  }, 800)
 }
 
-// Touch events
-swipeArea.addEventListener("touchstart", handleTouchStart)
-swipeArea.addEventListener("touchmove", handleTouchMove)
-swipeArea.addEventListener("touchend", handleTouchEnd)
+function handleCodeEntry(num) {
+  if (enteredCode.length < maxCodeLength) {
+    enteredCode += num
 
-// Mouse events
-swipeArea.addEventListener("mousedown", handleTouchStart)
-document.addEventListener("mousemove", handleTouchMove)
-document.addEventListener("mouseup", handleTouchEnd)
+    // Add haptic feedback with animation
+    const dots = document.querySelectorAll(".code-dot")
+    const currentDot = dots[enteredCode.length - 1]
+    currentDot.style.animation = "none"
+    setTimeout(() => {
+      currentDot.style.animation = ""
+    }, 10)
+
+    updateCodeDots()
+
+    // Auto-submit when 4 digits entered
+    if (enteredCode.length === maxCodeLength) {
+      setTimeout(() => {
+        handleCodeSubmit()
+      }, 200)
+    }
+  }
+}
+
+function handleCodeDelete() {
+  if (enteredCode.length > 0) {
+    enteredCode = enteredCode.slice(0, -1)
+    updateCodeDots()
+    document.getElementById("codeMessage").textContent = "Entrez le code"
+    document.getElementById("codeMessage").classList.remove("error")
+  }
+}
+
+function handleCodeSubmit() {
+  // Accept any code (as requested)
+  if (enteredCode.length === maxCodeLength) {
+    unlockDevice()
+  }
+}
+
+// Numpad event listeners
+document.querySelectorAll(".numpad-btn").forEach((btn) => {
+  btn.addEventListener("click", function () {
+    const num = this.getAttribute("data-num")
+    const action = this.getAttribute("data-action")
+
+    // Button press animation
+    this.style.transform = "scale(0.9)"
+    setTimeout(() => {
+      this.style.transform = ""
+    }, 150)
+
+    if (num) {
+      handleCodeEntry(num)
+    } else if (action === "delete") {
+      handleCodeDelete()
+    } else if (action === "enter") {
+      handleCodeSubmit()
+    }
+  })
+})
+
+// Keyboard support
+document.addEventListener("keydown", (e) => {
+  const lockscreen = document.getElementById("lockscreen")
+  if (!lockscreen.classList.contains("active")) return
+
+  if (e.key >= "0" && e.key <= "9") {
+    handleCodeEntry(e.key)
+  } else if (e.key === "Backspace") {
+    e.preventDefault()
+    handleCodeDelete()
+  } else if (e.key === "Enter") {
+    handleCodeSubmit()
+  }
+})
 
 // Window Management
 function openWindow(windowId) {
