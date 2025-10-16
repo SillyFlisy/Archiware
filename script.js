@@ -47,6 +47,10 @@ function unlockDevice() {
 
   isLocked = false
 
+  // Jouer le son de démarrage
+  const startupSound = new Audio('Assets/UI Sounds/startup.mp3')
+  startupSound.play().catch(e => console.log('Erreur audio:', e))
+
   lockscreen.style.transition = "opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)"
   lockscreen.style.opacity = "0"
   lockscreen.style.transform = "scale(0.95)"
@@ -191,17 +195,49 @@ document.querySelectorAll(".window").forEach((window) => {
   }
 })
 
+// Fonction pour afficher les notifications
+function showNotification(message) {
+  // Jouer le son de notification
+  const notificationSound = new Audio('Assets/UI Sounds/notification.mp3')
+  notificationSound.play().catch(e => console.log('Erreur audio:', e))
+
+  // Créer l'élément de notification
+  const notification = document.createElement('div')
+  notification.className = 'notification'
+  notification.innerHTML = `
+    <div class="notification-content">
+      <div class="notification-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+      </div>
+      <div class="notification-text">${message}</div>
+    </div>
+  `
+
+  document.body.appendChild(notification)
+
+  // Animation d'apparition
+  setTimeout(() => notification.classList.add('show'), 100)
+
+  // Suppression après 3 secondes
+  setTimeout(() => {
+    notification.classList.remove('show')
+    setTimeout(() => notification.remove(), 300)
+  }, 3000)
+}
+
 // Island interactions
 function showUserMenu() {
-  alert("Menu utilisateur - Fonctionnalité à venir !")
+  showNotification("Menu utilisateur - Arrive bientôt !")
 }
 
 function showAppGrid() {
-  alert("Grille d'applications - Fonctionnalité à venir !")
+  showNotification("Grille d'applications - Arrive bientôt !")
 }
 
 function showControlCenter() {
-  alert("Centre de contrôle - Fonctionnalité à venir !")
+  showNotification("Centre de contrôle - Arrive bientôt !")
 }
 
 // Dock icon bounce effect
