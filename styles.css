@@ -1264,3 +1264,67 @@ body {
   overflow: auto;
   padding: 24px;
 }
+/* Terminal Styles */
+.terminal-content {
+  background: rgba(0, 0, 0, 0.8);
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.terminal-line {
+  margin-bottom: 4px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-prompt {
+  color: #00ff00;
+  font-weight: bold;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  outline: none;
+  user-select: text;
+}
+
+.terminal-input::selection {
+  background: rgba(0, 255, 0, 0.3);
+}
+
+.terminal-error {
+  color: #ff4444;
+}
+
+.terminal-success {
+  color: #44ff44;
+}
+
+.terminal-info {
+  color: #4444ff;
+}
