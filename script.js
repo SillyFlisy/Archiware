@@ -34,9 +34,13 @@ const codeInput = document.getElementById("codeInput")
 // Détecter si on est sur mobile
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768
 
+// Événements lockscreen
 lockscreenContent.addEventListener("click", (e) => {
-  if (isLocked && !codeEntry.classList.contains("visible")) {
-    if (!isMobile) {
+  if (isLocked) {
+    if (isMobile) {
+      // Sur mobile : déverrouillage direct
+      unlockDevice()
+    } else if (!codeEntry.classList.contains("visible")) {
       // Sur desktop : afficher le champ de saisie
       timeDisplay.classList.add("moved-up")
       codeEntry.classList.add("visible")
@@ -47,28 +51,13 @@ lockscreenContent.addEventListener("click", (e) => {
   }
 })
 
-// Capteur digital - initialiser après le DOM
-document.addEventListener('DOMContentLoaded', () => {
-  const fingerprintSensor = document.getElementById('fingerprintSensor')
-  if (fingerprintSensor && isMobile) {
-    fingerprintSensor.addEventListener('click', (e) => {
-      console.log('Capteur cliqué')
-      if (isLocked) {
-        e.stopPropagation()
-        unlockDevice()
-      }
-    })
-    
-    fingerprintSensor.addEventListener('touchstart', (e) => {
-      console.log('Capteur touché')
-      if (isLocked) {
-        e.preventDefault()
-        e.stopPropagation()
-        unlockDevice()
-      }
-    })
+// Événement tactile pour mobile
+lockscreenContent.addEventListener("touchstart", (e) => {
+  if (isLocked && isMobile) {
+    e.preventDefault()
+    unlockDevice()
   }
-})
+}, { passive: false })
 
 function unlockDevice() {
   const lockscreen = document.getElementById("lockscreen")
