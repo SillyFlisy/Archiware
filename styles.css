@@ -540,7 +540,12 @@ body {
   overflow: hidden;
   animation: windowAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 50;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.window.dragging {
+  transition: none;
+  will-change: transform;
 }
 
 .window.focused {
