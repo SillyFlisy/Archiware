@@ -708,6 +708,22 @@ function shutdownSystem() {
   }, 2000)
 }
 
+function resetSystem() {
+  if (confirm('Voulez-vous vraiment réinitialiser l\'ordinateur ? Toutes les données seront effacées.')) {
+    const warningSound = new Audio('Assets/UI Sounds/warning.mp3')
+    warningSound.play().catch(e => console.log('Erreur audio:', e))
+    
+    showNotification('Réinitialisation en cours...')
+    
+    // Clear all localStorage
+    localStorage.clear()
+    
+    setTimeout(() => {
+      location.reload()
+    }, 2000)
+  }
+}
+
 // Island interactions
 function showAppGrid() {
   showNotification("Grille d'applications - Arrive bientôt !")
