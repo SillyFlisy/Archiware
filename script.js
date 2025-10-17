@@ -1,6 +1,71 @@
 let isLocked = true
+let isBooting = true
 const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 let use24HourFormat = true
+let notificationQueue = []
+let isNotificationShowing = false
+let userMenuVisible = false
+let minimizedWindows = new Set()
+
+// Load saved settings
+function loadSettings() {
+  const savedUsername = localStorage.getItem('archiware_username')
+  const savedWallpaper = localStorage.getItem('archiware_wallpaper')
+  const savedProfile = localStorage.getItem('archiware_profile')
+  const savedTimeFormat = localStorage.getItem('archiware_timeformat')
+  
+  if (savedUsername) {
+    document.getElementById('usernameDisplay').textContent = savedUsername
+    document.getElementById('menuUsername').textContent = savedUsername
+    document.getElementById('usernameInput').value = savedUsername
+    document.getElementById('avatarText').textContent = savedUsername.charAt(0).toUpperCase()
+    document.getElementById('menuAvatarText').textContent = savedUsername.charAt(0).toUpperCase()
+  }
+  
+  if (savedWallpaper) {
+    document.querySelectorAll('.liquid-bg').forEach(bg => {
+      bg.style.backgroundImage = `url(${savedWallpaper})`
+    })
+  }
+  
+  if (savedProfile) {
+    document.getElementById('profileImage').src = savedProfile
+    document.getElementById('profileImage').style.display = 'block'
+    document.getElementById('menuProfileImage').src = savedProfile
+    document.getElementById('menuProfileImage').style.display = 'block'
+    document.getElementById('avatarText').style.display = 'none'
+    document.getElementById('menuAvatarText').style.display = 'none'
+  }
+  
+  if (savedTimeFormat) {
+    use24HourFormat = savedTimeFormat === '24'
+    document.getElementById('timeFormatSelect').value = savedTimeFormat
+  }
+}
+
+// Boot Animation
+function startBootSequence() {
+  const bootScreen = document.getElementById('bootScreen')
+  const lockscreen = document.getElementById('lockscreen')
+  
+  // Play startup sound
+  const startupSound = new Audio('Assets/UI Sounds/startup.mp3')
+  startupSound.play().catch(e => console.log('Erreur audio:', e))
+  
+  setTimeout(() => {
+    bootScreen.classList.add('hidden')
+    setTimeout(() => {
+      bootScreen.style.display = 'none'
+      isBooting = false
+    }, 1000)
+  }, 4000)
+}
+
+// Start boot sequence on page load
+window.addEventListener('load', () => {
+  loadSettings()
+  startBootSequence()
+})
 
 function updateTime() {
   const now = new Date()
@@ -23,8 +88,38 @@ function updateTime() {
   }
 }
 
+// Initialize
 updateTime()
 setInterval(updateTime, 1000)
+
+// Prevent dragging of images and other elements
+document.addEventListener('dragstart', (e) => {
+  e.preventDefault()
+})
+
+// Close user menu when opening windows
+function openWindow(windowId) {
+  hideUserMenu()
+  const window = document.getElementById(windowId)
+  if (window) {
+    window.style.display = "block"
+    window.style.animation = "none"
+    
+    // Find available position
+    const pos = findAvailablePosition()
+    window.style.left = pos.x + 'px'
+    window.style.top = pos.y + 'px'
+    window.style.transform = 'translate(-50%, -50%)'
+    
+    // Register position
+    windowPositions.push({ id: windowId, x: pos.x, y: pos.y })
+    
+    focusWindow(window)
+    setTimeout(() => {
+      window.style.animation = ""
+    }, 10)
+  }
+}
 
 const lockscreenContent = document.getElementById("lockscreenContent")
 const timeDisplay = document.getElementById("timeDisplay")
@@ -62,12 +157,22 @@ lockscreenContent.addEventListener("touchstart", (e) => {
 function unlockDevice() {
   const lockscreen = document.getElementById("lockscreen")
   const desktop = document.getElementById("desktop")
+  const fingerprintSensor = document.getElementById("fingerprintSensor")
 
   isLocked = false
 
-  // Jouer le son de démarrage
-  const startupSound = new Audio('Assets/UI Sounds/startup.mp3')
-  startupSound.play().catch(e => console.log('Erreur audio:', e))
+  // Animation mobile : fingerprint vers dock
+  if (isMobile && fingerprintSensor) {
+    fingerprintSensor.classList.add('fingerprint-unlock')
+    setTimeout(() => {
+      // Faire apparaître le dock à la place
+      const dock = document.querySelector('.dock')
+      if (dock) {
+        dock.style.opacity = '1'
+        dock.style.transform = 'translateX(-50%) translateY(0)'
+      }
+    }, 750)
+  }
 
   lockscreen.style.transition = "opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)"
   lockscreen.style.opacity = "0"
@@ -129,27 +234,7 @@ function findAvailablePosition() {
   }
 }
 
-function openWindow(windowId) {
-  const window = document.getElementById(windowId)
-  if (window) {
-    window.style.display = "block"
-    window.style.animation = "none"
-    
-    // Trouver une position libre
-    const pos = findAvailablePosition()
-    window.style.left = pos.x + 'px'
-    window.style.top = pos.y + 'px'
-    window.style.transform = 'translate(-50%, -50%)'
-    
-    // Enregistrer la position
-    windowPositions.push({ id: windowId, x: pos.x, y: pos.y })
-    
-    focusWindow(window)
-    setTimeout(() => {
-      window.style.animation = ""
-    }, 10)
-  }
-}
+
 
 function closeWindow(windowId) {
   const window = document.getElementById(windowId)
@@ -203,19 +288,86 @@ const timeFormatSelect = document.getElementById("timeFormatSelect")
 const transparencySlider = document.getElementById("transparencySlider")
 const animationsToggle = document.getElementById("animationsToggle")
 
+// Settings Event Listeners
 if (usernameInput) {
   usernameInput.addEventListener("change", (e) => {
-    const username = document.querySelector(".username")
-    if (username) username.textContent = e.target.value
+    const newUsername = e.target.value
+    document.getElementById('usernameDisplay').textContent = newUsername
+    document.getElementById('menuUsername').textContent = newUsername
+    document.getElementById('avatarText').textContent = newUsername.charAt(0).toUpperCase()
+    document.getElementById('menuAvatarText').textContent = newUsername.charAt(0).toUpperCase()
+    localStorage.setItem('archiware_username', newUsername)
   })
 }
+
+// Wallpaper change
+document.addEventListener('DOMContentLoaded', () => {
+  const wallpaperInput = document.getElementById('wallpaperInput')
+  if (wallpaperInput) {
+    wallpaperInput.addEventListener('change', (e) => {
+      const file = e.target.files[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const imageUrl = e.target.result
+          document.querySelectorAll('.liquid-bg').forEach(bg => {
+            bg.style.backgroundImage = `url(${imageUrl})`
+          })
+          localStorage.setItem('archiware_wallpaper', imageUrl)
+          showNotification('Fond d\'écran modifié avec succès')
+        }
+        reader.readAsDataURL(file)
+      }
+    })
+  }
+  
+  // Profile picture change
+  const profileInput = document.getElementById('profileInput')
+  if (profileInput) {
+    profileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const imageUrl = e.target.result
+          document.getElementById('profileImage').src = imageUrl
+          document.getElementById('profileImage').style.display = 'block'
+          document.getElementById('menuProfileImage').src = imageUrl
+          document.getElementById('menuProfileImage').style.display = 'block'
+          document.getElementById('avatarText').style.display = 'none'
+          document.getElementById('menuAvatarText').style.display = 'none'
+          localStorage.setItem('archiware_profile', imageUrl)
+          showNotification('Photo de profil modifiée avec succès')
+        }
+        reader.readAsDataURL(file)
+      }
+    })
+  }
+})
 
 if (timeFormatSelect) {
   timeFormatSelect.addEventListener("change", (e) => {
     use24HourFormat = e.target.value === "24"
+    localStorage.setItem('archiware_timeformat', e.target.value)
     updateTime()
   })
 }
+
+// Add CSS animations for window controls
+const windowAnimations = document.createElement("style")
+windowAnimations.textContent = `
+  @keyframes windowMinimize {
+    to {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.1) translateY(200px);
+    }
+  }
+  
+  .window.maximized {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+`
+document.head.appendChild(windowAnimations)
 
 if (transparencySlider) {
   transparencySlider.addEventListener("input", (e) => {
@@ -235,7 +387,63 @@ if (animationsToggle) {
   })
 }
 
-// Make windows draggable (souris et tactile)
+// Enhanced Window Controls
+function minimizeWindow(windowId) {
+  const window = document.getElementById(windowId)
+  if (window) {
+    window.style.animation = 'windowMinimize 0.3s cubic-bezier(0.4, 0, 1, 1) forwards'
+    minimizedWindows.add(windowId)
+    
+    setTimeout(() => {
+      window.style.display = 'none'
+      window.style.animation = ''
+    }, 300)
+  }
+}
+
+function maximizeWindow(windowId) {
+  const window = document.getElementById(windowId)
+  if (window) {
+    const isMaximized = window.classList.contains('maximized')
+    
+    if (isMaximized) {
+      window.classList.remove('maximized')
+      window.style.width = '700px'
+      window.style.height = '500px'
+      window.style.left = '50%'
+      window.style.top = '50%'
+      window.style.transform = 'translate(-50%, -50%)'
+    } else {
+      window.classList.add('maximized')
+      window.style.width = 'calc(100vw - 40px)'
+      window.style.height = 'calc(100vh - 120px)'
+      window.style.left = '20px'
+      window.style.top = '20px'
+      window.style.transform = 'none'
+    }
+  }
+}
+
+// Add window control event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.minimize-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const windowId = e.target.closest('.window').id
+      minimizeWindow(windowId)
+    })
+  })
+  
+  document.querySelectorAll('.maximize-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const windowId = e.target.closest('.window').id
+      maximizeWindow(windowId)
+    })
+  })
+})
+
+// Enhanced dragging with teleportation fix
 document.querySelectorAll(".window").forEach((window) => {
   const header = window.querySelector(".window-header")
   let isDragging = false
@@ -245,13 +453,12 @@ document.querySelectorAll(".window").forEach((window) => {
   let initialY
   let xOffset = 0
   let yOffset = 0
+  let dragStartTime = 0
 
-  // Événements souris
   header.addEventListener("mousedown", dragStart)
   document.addEventListener("mousemove", drag)
   document.addEventListener("mouseup", dragEnd)
   
-  // Événements tactiles
   header.addEventListener("touchstart", dragStart, { passive: false })
   document.addEventListener("touchmove", drag, { passive: false })
   document.addEventListener("touchend", dragEnd)
@@ -259,8 +466,22 @@ document.querySelectorAll(".window").forEach((window) => {
   function dragStart(e) {
     if (e.target.closest(".window-controls")) return
 
+    dragStartTime = Date.now()
     const clientX = e.clientX || e.touches[0].clientX
     const clientY = e.clientY || e.touches[0].clientY
+    
+    const rect = window.getBoundingClientRect()
+    const computedStyle = window.getComputedStyle(window)
+    const transform = computedStyle.transform
+    
+    if (transform && transform !== 'none') {
+      const matrix = new DOMMatrix(transform)
+      xOffset = matrix.m41
+      yOffset = matrix.m42
+    } else {
+      xOffset = 0
+      yOffset = 0
+    }
     
     initialX = clientX - xOffset
     initialY = clientY - yOffset
@@ -282,18 +503,20 @@ document.querySelectorAll(".window").forEach((window) => {
       if (clientX !== undefined && clientY !== undefined) {
         currentX = clientX - initialX
         currentY = clientY - initialY
-        xOffset = currentX
-        yOffset = currentY
-
-        window.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`
+        
+        // Prevent teleportation by limiting movement speed
+        const dragDuration = Date.now() - dragStartTime
+        if (dragDuration > 50) { // Only update position after 50ms
+          xOffset = currentX
+          yOffset = currentY
+          window.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`
+        }
       }
     }
   }
 
   function dragEnd(e) {
     if (isDragging) {
-      initialX = currentX
-      initialY = currentY
       isDragging = false
       window.classList.remove('dragging')
     }
@@ -371,13 +594,31 @@ if (!notificationsContainer) {
   document.body.appendChild(notificationsContainer)
 }
 
-// Fonction pour afficher les notifications
+// Enhanced Notification System with Queue
 function showNotification(message) {
-  // Jouer le son de notification
+  notificationQueue.push(message)
+  processNotificationQueue()
+}
+
+function processNotificationQueue() {
+  if (isNotificationShowing || notificationQueue.length === 0) return
+  
+  isNotificationShowing = true
+  const message = notificationQueue.shift()
+  
+  // Hide right island on mobile when notification appears
+  if (isMobile) {
+    const rightIsland = document.querySelector('.right-island')
+    if (rightIsland) {
+      rightIsland.classList.add('hidden')
+    }
+  }
+  
+  // Play notification sound
   const notificationSound = new Audio('Assets/UI Sounds/notification.mp3')
   notificationSound.play().catch(e => console.log('Erreur audio:', e))
 
-  // Créer l'élément de notification
+  // Create notification element
   const notification = document.createElement('div')
   notification.className = 'notification'
   notification.innerHTML = `
@@ -393,25 +634,87 @@ function showNotification(message) {
 
   notificationsContainer.appendChild(notification)
 
-  // Animation d'apparition
+  // Show animation
   setTimeout(() => notification.classList.add('show'), 100)
 
-  // Suppression après 3 secondes
+  // Hide after 3 seconds
   setTimeout(() => {
     notification.classList.remove('show')
     setTimeout(() => {
       if (notification.parentNode) {
         notification.remove()
       }
+      isNotificationShowing = false
+      
+      // Show right island again on mobile
+      if (isMobile) {
+        const rightIsland = document.querySelector('.right-island')
+        if (rightIsland) {
+          rightIsland.classList.remove('hidden')
+        }
+      }
+      
+      // Process next notification in queue
+      processNotificationQueue()
     }, 400)
   }, 3000)
 }
 
-// Island interactions
-function showUserMenu() {
-  showNotification("Menu utilisateur - Arrive bientôt !")
+// User Menu Functions
+function toggleUserMenu() {
+  const userMenu = document.getElementById('userMenu')
+  userMenuVisible = !userMenuVisible
+  
+  if (userMenuVisible) {
+    userMenu.classList.add('show')
+    // Close menu when clicking outside
+    setTimeout(() => {
+      document.addEventListener('click', closeUserMenuOnClickOutside)
+    }, 100)
+  } else {
+    hideUserMenu()
+  }
 }
 
+function hideUserMenu() {
+  const userMenu = document.getElementById('userMenu')
+  userMenu.classList.remove('show')
+  userMenuVisible = false
+  document.removeEventListener('click', closeUserMenuOnClickOutside)
+}
+
+function closeUserMenuOnClickOutside(e) {
+  const userMenu = document.getElementById('userMenu')
+  const userProfile = document.querySelector('.user-profile')
+  
+  if (!userMenu.contains(e.target) && !userProfile.contains(e.target)) {
+    hideUserMenu()
+  }
+}
+
+// System Functions
+function restartSystem() {
+  const restartSound = new Audio('Assets/UI Sounds/restart.mp3')
+  restartSound.play().catch(e => console.log('Erreur audio:', e))
+  
+  showNotification('Redémarrage en cours...')
+  setTimeout(() => {
+    location.reload()
+  }, 2000)
+}
+
+function shutdownSystem() {
+  const warningSound = new Audio('Assets/UI Sounds/warning.mp3')
+  warningSound.play().catch(e => console.log('Erreur audio:', e))
+  
+  showNotification('Arrêt du système...')
+  setTimeout(() => {
+    document.body.style.background = 'black'
+    document.body.innerHTML = '<div style="color: white; text-align: center; padding-top: 45vh; font-family: monospace;">Système arrêté. Vous pouvez fermer cette fenêtre.</div>'
+  }, 2000)
+}
+
+// Island interactions
 function showAppGrid() {
   showNotification("Grille d'applications - Arrive bientôt !")
 }
@@ -515,4 +818,24 @@ if (urlBar) {
       navigateToUrl()
     }
   })
+}
+
+// Prevent context menu on long press (mobile)
+document.addEventListener('contextmenu', (e) => {
+  if (isMobile) {
+    e.preventDefault()
+  }
+})
+
+// Enhanced mobile fingerprint unlock
+if (isMobile) {
+  const fingerprintSensor = document.getElementById('fingerprintSensor')
+  if (fingerprintSensor) {
+    fingerprintSensor.addEventListener('touchstart', (e) => {
+      e.preventDefault()
+      if (isLocked) {
+        unlockDevice()
+      }
+    }, { passive: false })
+  }
 }
