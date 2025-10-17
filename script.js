@@ -69,25 +69,7 @@ function markAsBooted() {
   localStorage.setItem('archiware_has_booted', 'true')
 }
 
-// macOS Settings Navigation
-function initSettingsNavigation() {
-  const sidebarItems = document.querySelectorAll('.sidebar-item')
-  const panels = document.querySelectorAll('.settings-panel')
-  
-  sidebarItems.forEach(item => {
-    item.addEventListener('click', () => {
-      const panelId = item.dataset.panel + '-panel'
-      
-      // Remove active class from all items and panels
-      sidebarItems.forEach(i => i.classList.remove('active'))
-      panels.forEach(p => p.classList.remove('active'))
-      
-      // Add active class to clicked item and corresponding panel
-      item.classList.add('active')
-      document.getElementById(panelId).classList.add('active')
-    })
-  })
-}
+
 
 // Start boot sequence on page load
 window.addEventListener('load', () => {
@@ -101,10 +83,7 @@ window.addEventListener('load', () => {
   }
 })
 
-// Initialize enhanced settings when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  initEnhancedSettings()
-})
+
 
 function updateTime() {
   const now = new Date()
@@ -327,27 +306,19 @@ const timeFormatSelect = document.getElementById("timeFormatSelect")
 const transparencySlider = document.getElementById("transparencySlider")
 const animationsToggle = document.getElementById("animationsToggle")
 
-// Settings Event Listeners
-function initSettingsListeners() {
-  const usernameInput = document.getElementById('usernameInput')
-  if (usernameInput) {
-    usernameInput.addEventListener("input", (e) => {
-      const newUsername = e.target.value
-      document.getElementById('usernameDisplay').textContent = newUsername
-      document.getElementById('menuUsername').textContent = newUsername
-      document.getElementById('avatarText').textContent = newUsername.charAt(0).toUpperCase()
-      document.getElementById('menuAvatarText').textContent = newUsername.charAt(0).toUpperCase()
-      document.getElementById('avatarTextLarge').textContent = newUsername.charAt(0).toUpperCase()
-      localStorage.setItem('archiware_username', newUsername)
-    })
-  }
+if (usernameInput) {
+  usernameInput.addEventListener("input", (e) => {
+    const newUsername = e.target.value
+    document.getElementById('usernameDisplay').textContent = newUsername
+    document.getElementById('menuUsername').textContent = newUsername
+    document.getElementById('avatarText').textContent = newUsername.charAt(0).toUpperCase()
+    document.getElementById('menuAvatarText').textContent = newUsername.charAt(0).toUpperCase()
+    localStorage.setItem('archiware_username', newUsername)
+  })
 }
 
-// Enhanced Settings Initialization
-function initEnhancedSettings() {
-  initSettingsNavigation()
-  initSettingsListeners()
-  
+// Settings Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
   const wallpaperInput = document.getElementById('wallpaperInput')
   if (wallpaperInput) {
     wallpaperInput.addEventListener('change', (e) => {
@@ -359,7 +330,6 @@ function initEnhancedSettings() {
           document.querySelectorAll('.liquid-bg').forEach(bg => {
             bg.style.backgroundImage = `url(${imageUrl})`
           })
-          document.getElementById('wallpaperPreview').style.backgroundImage = `url(${imageUrl})`
           localStorage.setItem('archiware_wallpaper', imageUrl)
           showNotification('Fond d\'écran modifié avec succès')
         }
@@ -376,7 +346,12 @@ function initEnhancedSettings() {
         const reader = new FileReader()
         reader.onload = (e) => {
           const imageUrl = e.target.result
-          updateProfileImages(imageUrl)
+          document.getElementById('profileImage').src = imageUrl
+          document.getElementById('profileImage').style.display = 'block'
+          document.getElementById('menuProfileImage').src = imageUrl
+          document.getElementById('menuProfileImage').style.display = 'block'
+          document.getElementById('avatarText').style.display = 'none'
+          document.getElementById('menuAvatarText').style.display = 'none'
           localStorage.setItem('archiware_profile', imageUrl)
           showNotification('Photo de profil modifiée avec succès')
         }
@@ -384,25 +359,7 @@ function initEnhancedSettings() {
       }
     })
   }
-}
-
-function updateProfileImages(imageUrl) {
-  const images = ['profileImage', 'menuProfileImage', 'profileImageLarge']
-  const texts = ['avatarText', 'menuAvatarText', 'avatarTextLarge']
-  
-  images.forEach(id => {
-    const img = document.getElementById(id)
-    if (img) {
-      img.src = imageUrl
-      img.style.display = 'block'
-    }
-  })
-  
-  texts.forEach(id => {
-    const text = document.getElementById(id)
-    if (text) text.style.display = 'none'
-  })
-}
+})
 
 if (timeFormatSelect) {
   timeFormatSelect.addEventListener("change", (e) => {
