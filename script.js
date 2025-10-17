@@ -281,8 +281,10 @@ function focusWindow(window) {
   window.style.zIndex = ++windowZIndex
 }
 
-// Ajouter les événements de clic sur les fenêtres
+// Initialize all window interactions
 document.addEventListener('DOMContentLoaded', () => {
+  initWindowInteractions()
+  
   document.querySelectorAll('.window').forEach(window => {
     window.addEventListener('mousedown', () => {
       focusWindow(window)
@@ -440,8 +442,8 @@ function maximizeWindow(windowId) {
   }
 }
 
-// Add window control event listeners
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize window interactions
+function initWindowInteractions() {
   document.querySelectorAll('.minimize-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -457,150 +459,155 @@ document.addEventListener('DOMContentLoaded', () => {
       maximizeWindow(windowId)
     })
   })
-})
-
-// Enhanced dragging with teleportation fix
-document.querySelectorAll(".window").forEach((window) => {
-  const header = window.querySelector(".window-header")
-  let isDragging = false
-  let currentX = 0
-  let currentY = 0
-  let initialX
-  let initialY
-  let xOffset = 0
-  let yOffset = 0
-  let dragStartTime = 0
-
-  header.addEventListener("mousedown", dragStart)
-  document.addEventListener("mousemove", drag)
-  document.addEventListener("mouseup", dragEnd)
   
-  header.addEventListener("touchstart", dragStart, { passive: false })
-  document.addEventListener("touchmove", drag, { passive: false })
-  document.addEventListener("touchend", dragEnd)
+  // Initialize dragging and resizing
+  initWindowDragging()
+  initWindowResizing()
+}
 
-  function dragStart(e) {
-    if (e.target.closest(".window-controls")) return
+// Window dragging functionality
+function initWindowDragging() {
+  document.querySelectorAll('.window').forEach((window) => {
+    const header = window.querySelector('.window-header')
+    let isDragging = false
+    let currentX = 0
+    let currentY = 0
+    let initialX
+    let initialY
+    let xOffset = 0
+    let yOffset = 0
 
-    dragStartTime = Date.now()
-    const clientX = e.clientX || e.touches[0].clientX
-    const clientY = e.clientY || e.touches[0].clientY
+    header.addEventListener('mousedown', dragStart)
+    document.addEventListener('mousemove', drag)
+    document.addEventListener('mouseup', dragEnd)
     
-    const rect = window.getBoundingClientRect()
-    const computedStyle = window.getComputedStyle(window)
-    const transform = computedStyle.transform
-    
-    if (transform && transform !== 'none') {
-      const matrix = new DOMMatrix(transform)
-      xOffset = matrix.m41
-      yOffset = matrix.m42
-    } else {
-      xOffset = 0
-      yOffset = 0
-    }
-    
-    initialX = clientX - xOffset
-    initialY = clientY - yOffset
+    header.addEventListener('touchstart', dragStart, { passive: false })
+    document.addEventListener('touchmove', drag, { passive: false })
+    document.addEventListener('touchend', dragEnd)
 
-    if (e.target === header || header.contains(e.target)) {
-      isDragging = true
-      window.classList.add('dragging')
-      focusWindow(window)
-    }
-  }
+    function dragStart(e) {
+      if (e.target.closest('.window-controls')) return
 
-  function drag(e) {
-    if (isDragging) {
-      e.preventDefault()
+      const clientX = e.clientX || e.touches[0].clientX
+      const clientY = e.clientY || e.touches[0].clientY
       
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX)
-      const clientY = e.clientY || (e.touches && e.touches[0].clientY)
+      const rect = window.getBoundingClientRect()
+      const computedStyle = window.getComputedStyle(window)
+      const transform = computedStyle.transform
       
-      if (clientX !== undefined && clientY !== undefined) {
-        currentX = clientX - initialX
-        currentY = clientY - initialY
+      if (transform && transform !== 'none') {
+        const matrix = new DOMMatrix(transform)
+        xOffset = matrix.m41
+        yOffset = matrix.m42
+      } else {
+        xOffset = 0
+        yOffset = 0
+      }
+      
+      initialX = clientX - xOffset
+      initialY = clientY - yOffset
+
+      if (e.target === header || header.contains(e.target)) {
+        isDragging = true
+        window.classList.add('dragging')
+        focusWindow(window)
+      }
+    }
+
+    function drag(e) {
+      if (isDragging) {
+        e.preventDefault()
         
-        // Prevent teleportation by limiting movement speed
-        const dragDuration = Date.now() - dragStartTime
-        if (dragDuration > 50) { // Only update position after 50ms
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX)
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY)
+        
+        if (clientX !== undefined && clientY !== undefined) {
+          currentX = clientX - initialX
+          currentY = clientY - initialY
           xOffset = currentX
           yOffset = currentY
           window.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`
         }
       }
     }
-  }
 
-  function dragEnd(e) {
-    if (isDragging) {
-      isDragging = false
-      window.classList.remove('dragging')
+    function dragEnd(e) {
+      if (isDragging) {
+        isDragging = false
+        window.classList.remove('dragging')
+      }
     }
-  }
-})
+  })
+}
 
-// Window Resizing
-document.querySelectorAll('.window').forEach(window => {
-  const resizeHandles = window.querySelectorAll('.resize-handle')
-  let isResizing = false
-  let resizeType = ''
-  let startX, startY, startWidth, startHeight, startLeft, startTop
+// Window resizing functionality
+function initWindowResizing() {
+  document.querySelectorAll('.window').forEach(window => {
+    const resizeHandles = window.querySelectorAll('.resize-handle')
+    let isResizing = false
+    let resizeType = ''
+    let startX, startY, startWidth, startHeight, startLeft, startTop
 
-  resizeHandles.forEach(handle => {
-    handle.addEventListener('mousedown', (e) => {
-      isResizing = true
-      resizeType = handle.className.split(' ')[1]
-      startX = e.clientX
-      startY = e.clientY
+    resizeHandles.forEach(handle => {
+      handle.addEventListener('mousedown', (e) => {
+        isResizing = true
+        resizeType = handle.className.split(' ')[1]
+        startX = e.clientX
+        startY = e.clientY
+        
+        const rect = window.getBoundingClientRect()
+        startWidth = rect.width
+        startHeight = rect.height
+        startLeft = rect.left
+        startTop = rect.top
+        
+        e.preventDefault()
+        e.stopPropagation()
+      })
+    })
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return
       
-      const rect = window.getBoundingClientRect()
-      startWidth = rect.width
-      startHeight = rect.height
-      startLeft = rect.left
-      startTop = rect.top
+      const deltaX = e.clientX - startX
+      const deltaY = e.clientY - startY
       
-      e.preventDefault()
-      e.stopPropagation()
+      let newWidth = startWidth
+      let newHeight = startHeight
+      let newLeft = startLeft
+      let newTop = startTop
+      
+      if (resizeType.includes('e')) newWidth = startWidth + deltaX
+      if (resizeType.includes('w')) {
+        newWidth = startWidth - deltaX
+        newLeft = startLeft + deltaX
+      }
+      if (resizeType.includes('s')) newHeight = startHeight + deltaY
+      if (resizeType.includes('n')) {
+        newHeight = startHeight - deltaY
+        newTop = startTop + deltaY
+      }
+      
+      newWidth = Math.max(300, newWidth)
+      newHeight = Math.max(200, newHeight)
+      
+      window.style.width = newWidth + 'px'
+      window.style.height = newHeight + 'px'
+      window.style.left = newLeft + 'px'
+      window.style.top = newTop + 'px'
+      window.style.transform = 'none'
+    })
+
+    document.addEventListener('mouseup', () => {
+      isResizing = false
+      resizeType = ''
     })
   })
+}
 
-  document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return
-    
-    const deltaX = e.clientX - startX
-    const deltaY = e.clientY - startY
-    
-    let newWidth = startWidth
-    let newHeight = startHeight
-    let newLeft = startLeft
-    let newTop = startTop
-    
-    if (resizeType.includes('e')) newWidth = startWidth + deltaX
-    if (resizeType.includes('w')) {
-      newWidth = startWidth - deltaX
-      newLeft = startLeft + deltaX
-    }
-    if (resizeType.includes('s')) newHeight = startHeight + deltaY
-    if (resizeType.includes('n')) {
-      newHeight = startHeight - deltaY
-      newTop = startTop + deltaY
-    }
-    
-    newWidth = Math.max(300, newWidth)
-    newHeight = Math.max(200, newHeight)
-    
-    window.style.width = newWidth + 'px'
-    window.style.height = newHeight + 'px'
-    window.style.left = newLeft + 'px'
-    window.style.top = newTop + 'px'
-    window.style.transform = 'none'
-  })
 
-  document.addEventListener('mouseup', () => {
-    isResizing = false
-    resizeType = ''
-  })
-})
+
+
 
 // Créer le conteneur de notifications
 let notificationsContainer = document.querySelector('.notifications-container')
