@@ -151,112 +151,85 @@
                         </button>
                     </div>
                 </div>
-                <div class="window-content macos-settings">
-                    <div class="settings-sidebar">
-                        <div class="sidebar-item active" data-panel="general">
-                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-                            </svg>
-                            Général
+                <div class="window-content">
+                    <div class="settings-section">
+                        <h3 class="settings-title">Apparence</h3>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Mode sombre</div>
+                                <div class="setting-desc">Activer le thème sombre</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="darkModeToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
                         </div>
-                        <div class="sidebar-item" data-panel="appearance">
-                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-                            </svg>
-                            Apparence
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Animations fluides</div>
+                                <div class="setting-desc">Activer les animations avancées</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="animationsToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
                         </div>
-                        <div class="sidebar-item" data-panel="desktop">
-                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7l-2 3v1h8v-1l-2-3h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H3V4h18v10z"/>
-                            </svg>
-                            Bureau
-                        </div>
-                        <div class="sidebar-item" data-panel="users">
-                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                            </svg>
-                            Utilisateurs
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Transparence</div>
+                                <div class="setting-desc">Niveau de transparence des fenêtres</div>
+                            </div>
+                            <input type="range" id="transparencySlider" min="0" max="100" value="50" class="slider">
                         </div>
                     </div>
-                    
-                    <div class="settings-content">
-                        <div class="settings-panel active" id="general-panel">
-                            <h2 class="panel-title">Général</h2>
-                            <div class="macos-setting-group">
-                                <div class="macos-setting-item">
-                                    <div class="setting-label">
-                                        <div class="setting-title">Format de l'heure</div>
-                                        <div class="setting-subtitle">Choisir le format d'affichage de l'heure</div>
-                                    </div>
-                                    <select id="timeFormatSelect" class="macos-select">
-                                        <option value="24">24 heures</option>
-                                        <option value="12">12 heures (AM/PM)</option>
-                                    </select>
-                                </div>
-                                <div class="macos-setting-item">
-                                    <div class="setting-label">
-                                        <div class="setting-title">Animations</div>
-                                        <div class="setting-subtitle">Activer les animations du système</div>
-                                    </div>
-                                    <label class="macos-toggle">
-                                        <input type="checkbox" id="animationsToggle" checked>
-                                        <span class="macos-toggle-slider"></span>
-                                    </label>
-                                </div>
+
+                    <div class="settings-section">
+                        <h3 class="settings-title">Personnalisation</h3>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Fond d'écran</div>
+                                <div class="setting-desc">Changer l'image de fond</div>
                             </div>
+                            <input type="file" id="wallpaperInput" accept="image/*" class="file-input" style="display: none;">
+                            <button class="settings-btn" onclick="document.getElementById('wallpaperInput').click()">Choisir</button>
                         </div>
-                        
-                        <div class="settings-panel" id="appearance-panel">
-                            <h2 class="panel-title">Apparence</h2>
-                            <div class="macos-setting-group">
-                                <div class="macos-setting-item">
-                                    <div class="setting-label">
-                                        <div class="setting-title">Mode sombre</div>
-                                        <div class="setting-subtitle">Utiliser l'apparence sombre</div>
-                                    </div>
-                                    <label class="macos-toggle">
-                                        <input type="checkbox" id="darkModeToggle" checked>
-                                        <span class="macos-toggle-slider"></span>
-                                    </label>
-                                </div>
-                                <div class="macos-setting-item">
-                                    <div class="setting-label">
-                                        <div class="setting-title">Transparence</div>
-                                        <div class="setting-subtitle">Réduire la transparence</div>
-                                    </div>
-                                    <input type="range" id="transparencySlider" min="0" max="100" value="50" class="macos-slider">
-                                </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Photo de profil</div>
+                                <div class="setting-desc">Changer votre avatar</div>
                             </div>
+                            <input type="file" id="profileInput" accept="image/*" class="file-input" style="display: none;">
+                            <button class="settings-btn" onclick="document.getElementById('profileInput').click()">Choisir</button>
                         </div>
-                        
-                        <div class="settings-panel" id="desktop-panel">
-                            <h2 class="panel-title">Bureau et économiseur d'écran</h2>
-                            <div class="macos-setting-group">
-                                <div class="wallpaper-preview">
-                                    <div class="preview-image" id="wallpaperPreview"></div>
-                                    <div class="preview-controls">
-                                        <input type="file" id="wallpaperInput" accept="image/*" style="display: none;">
-                                        <button class="macos-btn" onclick="document.getElementById('wallpaperInput').click()">Changer le fond d'écran</button>
-                                    </div>
-                                </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3 class="settings-title">Système</h3>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Nom d'utilisateur</div>
+                                <div class="setting-desc">Modifier votre nom d'utilisateur</div>
                             </div>
+                            <input type="text" id="usernameInput" value="zetsukae" class="text-input">
                         </div>
-                        
-                        <div class="settings-panel" id="users-panel">
-                            <h2 class="panel-title">Utilisateurs et groupes</h2>
-                            <div class="macos-setting-group">
-                                <div class="user-profile-section">
-                                    <div class="user-avatar-large" id="userAvatarLarge">
-                                        <img id="profileImageLarge" src="" alt="" style="display: none;">
-                                        <span id="avatarTextLarge">Z</span>
-                                    </div>
-                                    <div class="user-info-section">
-                                        <input type="text" id="usernameInput" value="zetsukae" class="macos-input" placeholder="Nom d'utilisateur">
-                                        <input type="file" id="profileInput" accept="image/*" style="display: none;">
-                                        <button class="macos-btn secondary" onclick="document.getElementById('profileInput').click()">Modifier la photo</button>
-                                    </div>
-                                </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Format de l'heure</div>
+                                <div class="setting-desc">Choisir le format d'affichage</div>
                             </div>
+                            <select id="timeFormatSelect" class="select-input">
+                                <option value="24">24 heures</option>
+                                <option value="12">12 heures (AM/PM)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3 class="settings-title">À propos</h3>
+                        <div class="about-info">
+                            <p><strong>ArchiwareOS</strong> version WEB</p>
+                            <p>Système d'exploitation web moderne</p>
+                            <p>Made by Uniware Team, All Rights Reserved.</p>
                         </div>
                     </div>
                 </div>
