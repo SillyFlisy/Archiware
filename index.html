@@ -8,6 +8,22 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Boot Animation -->
+    <div class="boot-screen" id="bootScreen">
+        <div class="boot-content">
+            <div class="boot-logo">
+                <img src="archiwareos.png" alt="ArchiwareOS" class="boot-logo-img">
+            </div>
+            <div class="boot-text">ArchiwareOS</div>
+            <div class="boot-loading">
+                <div class="loading-bar">
+                    <div class="loading-progress" id="loadingProgress"></div>
+                </div>
+                <div class="loading-text">Démarrage en cours...</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Lockscreen -->
     <div id="lockscreen" class="lockscreen active">
         <div class="liquid-bg"></div>
@@ -47,13 +63,12 @@
 
         <!-- Left Island -->
         <div class="island left-island">
-            <div class="user-profile" onclick="showUserMenu()">
-                <div class="avatar">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-                    </svg>
+            <div class="user-profile" onclick="toggleUserMenu()">
+                <div class="avatar" id="userAvatar">
+                    <img id="profileImage" src="" alt="" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                    <span id="avatarText">Z</span>
                 </div>
-                <span class="username">zetsukae</span>
+                <span class="username" id="usernameDisplay">zetsukae</span>
             </div>
             <button class="island-btn" onclick="showAppGrid()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -63,6 +78,42 @@
                     <rect x="3" y="14" width="7" height="7"/>
                 </svg>
             </button>
+        </div>
+
+        <!-- User Menu -->
+        <div class="user-menu" id="userMenu">
+            <div class="user-menu-content">
+                <div class="user-menu-header">
+                    <div class="user-menu-avatar">
+                        <img id="menuProfileImage" src="" alt="" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                        <span id="menuAvatarText">Z</span>
+                    </div>
+                    <div class="user-menu-info">
+                        <div class="user-menu-name" id="menuUsername">zetsukae</div>
+                        <div class="user-menu-status">En ligne</div>
+                    </div>
+                </div>
+                <div class="user-menu-actions">
+                    <button class="user-menu-btn" onclick="openWindow('settingsWindow'); hideUserMenu()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                        </svg>
+                        Paramètres
+                    </button>
+                    <button class="user-menu-btn" onclick="restartSystem()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                        </svg>
+                        Redémarrer
+                    </button>
+                    <button class="user-menu-btn shutdown-btn" onclick="shutdownSystem()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/>
+                        </svg>
+                        Éteindre
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Right Island -->
@@ -131,6 +182,26 @@
                                 <div class="setting-desc">Niveau de transparence des fenêtres</div>
                             </div>
                             <input type="range" id="transparencySlider" min="0" max="100" value="50" class="slider">
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3 class="settings-title">Personnalisation</h3>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Fond d'écran</div>
+                                <div class="setting-desc">Changer l'image de fond</div>
+                            </div>
+                            <input type="file" id="wallpaperInput" accept="image/*" class="file-input" style="display: none;">
+                            <button class="settings-btn" onclick="document.getElementById('wallpaperInput').click()">Choisir</button>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Photo de profil</div>
+                                <div class="setting-desc">Changer votre avatar</div>
+                            </div>
+                            <input type="file" id="profileInput" accept="image/*" class="file-input" style="display: none;">
+                            <button class="settings-btn" onclick="document.getElementById('profileInput').click()">Choisir</button>
                         </div>
                     </div>
 
