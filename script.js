@@ -317,19 +317,21 @@ function checkWindowOverlap() {
     }
   })
   
-  // Apply hiding
+  // Apply hiding for dock
   if (hideDock !== dockHidden) {
     dockHidden = hideDock
     dock.style.transform = hideDock ? 'translateX(-50%) translateY(100%)' : 'translateX(-50%) translateY(0)'
     dock.style.opacity = hideDock ? '0' : '1'
   }
   
+  // Apply hiding for left island
   if (hideLeftIsland !== leftIslandHidden && leftIsland) {
     leftIslandHidden = hideLeftIsland
     leftIsland.style.transform = hideLeftIsland ? 'translateY(-100%)' : 'translateY(0)'
     leftIsland.style.opacity = hideLeftIsland ? '0' : '1'
   }
   
+  // Apply hiding for right island
   if (hideRightIsland !== rightIslandHidden && rightIsland) {
     rightIslandHidden = hideRightIsland
     rightIsland.style.transform = hideRightIsland ? 'translateY(-100%)' : 'translateY(0)'
@@ -360,7 +362,7 @@ function initHoverZones() {
   })
   
   dockZone.addEventListener('mouseleave', () => {
-    setTimeout(checkWindowOverlap, 200)
+    setTimeout(checkWindowOverlap, 100)
   })
   
   // Left island hover zone
@@ -386,7 +388,7 @@ function initHoverZones() {
   })
   
   leftZone.addEventListener('mouseleave', () => {
-    setTimeout(checkWindowOverlap, 200)
+    setTimeout(checkWindowOverlap, 100)
   })
   
   // Right island hover zone
@@ -412,13 +414,24 @@ function initHoverZones() {
   })
   
   rightZone.addEventListener('mouseleave', () => {
-    setTimeout(checkWindowOverlap, 200)
+    setTimeout(checkWindowOverlap, 100)
+  })
+  
+  // Add window hover detection to re-hide elements
+  document.querySelectorAll('.window').forEach(window => {
+    window.addEventListener('mouseenter', () => {
+      setTimeout(checkWindowOverlap, 50)
+    })
   })
 }
 
 // Initialize hover zones after DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(initHoverZones, 1000)
+  setTimeout(() => {
+    initHoverZones()
+    // Initial check
+    checkWindowOverlap()
+  }, 1000)
 })
 
 // Focus windows on click
