@@ -346,22 +346,21 @@ function initHoverZones() {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 5px;
-    z-index: 200;
+    height: 10px;
+    z-index: 9999;
     pointer-events: all;
+    background: transparent;
   `
   document.body.appendChild(dockZone)
   
   dockZone.addEventListener('mouseenter', () => {
-    if (dockHidden) {
-      const dock = document.querySelector('.dock')
-      dock.style.transform = 'translateX(-50%) translateY(0)'
-      dock.style.opacity = '1'
-    }
+    const dock = document.querySelector('.dock')
+    dock.style.transform = 'translateX(-50%) translateY(0)'
+    dock.style.opacity = '1'
   })
   
   dockZone.addEventListener('mouseleave', () => {
-    setTimeout(checkWindowOverlap, 100)
+    setTimeout(checkWindowOverlap, 200)
   })
   
   // Left island hover zone
@@ -371,24 +370,23 @@ function initHoverZones() {
     top: 0;
     left: 0;
     width: 250px;
-    height: 5px;
-    z-index: 200;
+    height: 10px;
+    z-index: 9999;
     pointer-events: all;
+    background: transparent;
   `
   document.body.appendChild(leftZone)
   
   leftZone.addEventListener('mouseenter', () => {
-    if (leftIslandHidden) {
-      const leftIsland = document.querySelector('.left-island')
-      if (leftIsland) {
-        leftIsland.style.transform = 'translateY(0)'
-        leftIsland.style.opacity = '1'
-      }
+    const leftIsland = document.querySelector('.left-island')
+    if (leftIsland) {
+      leftIsland.style.transform = 'translateY(0)'
+      leftIsland.style.opacity = '1'
     }
   })
   
   leftZone.addEventListener('mouseleave', () => {
-    setTimeout(checkWindowOverlap, 100)
+    setTimeout(checkWindowOverlap, 200)
   })
   
   // Right island hover zone
@@ -398,29 +396,30 @@ function initHoverZones() {
     top: 0;
     right: 0;
     width: 250px;
-    height: 5px;
-    z-index: 200;
+    height: 10px;
+    z-index: 9999;
     pointer-events: all;
+    background: transparent;
   `
   document.body.appendChild(rightZone)
   
   rightZone.addEventListener('mouseenter', () => {
-    if (rightIslandHidden) {
-      const rightIsland = document.querySelector('.right-island')
-      if (rightIsland) {
-        rightIsland.style.transform = 'translateY(0)'
-        rightIsland.style.opacity = '1'
-      }
+    const rightIsland = document.querySelector('.right-island')
+    if (rightIsland) {
+      rightIsland.style.transform = 'translateY(0)'
+      rightIsland.style.opacity = '1'
     }
   })
   
   rightZone.addEventListener('mouseleave', () => {
-    setTimeout(checkWindowOverlap, 100)
+    setTimeout(checkWindowOverlap, 200)
   })
 }
 
-// Initialize hover zones
-initHoverZones()
+// Initialize hover zones after DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initHoverZones, 1000)
+})
 
 // Focus windows on click
 document.querySelectorAll('.window').forEach(window => {
