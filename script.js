@@ -180,6 +180,10 @@ function unlockDevice() {
 
   isLocked = false
 
+  // Play login sound
+  const loginSound = new Audio('Assets/UI Sounds/login.mp3')
+  loginSound.play().catch(e => console.log('Erreur audio:', e))
+
   // Animation mobile : fingerprint vers dock
   if (isMobile && fingerprintSensor) {
     fingerprintSensor.classList.add('fingerprint-unlock')
