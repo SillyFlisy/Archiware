@@ -32,6 +32,104 @@ body {
   color: white;
 }
 
+/* Boot Screen */
+.boot-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+}
+
+.boot-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.boot-content {
+  text-align: center;
+  animation: bootFadeIn 1.5s ease-out;
+}
+
+.boot-logo {
+  margin-bottom: 30px;
+}
+
+.boot-logo-img {
+  width: 120px;
+  height: 120px;
+  animation: logoFloat 2s ease-in-out infinite;
+}
+
+.boot-text {
+  font-size: 36px;
+  font-weight: 300;
+  color: white;
+  margin-bottom: 50px;
+  letter-spacing: 2px;
+}
+
+.boot-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.loading-bar {
+  width: 300px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.loading-progress {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-purple), var(--secondary-pink));
+  border-radius: 2px;
+  width: 0%;
+  animation: loadingProgress 3s ease-out forwards;
+}
+
+.loading-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+@keyframes bootFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes loadingProgress {
+  to {
+    width: 100%;
+  }
+}
+
 /* Liquid Background */
 .liquid-bg {
   position: absolute;
@@ -1270,19 +1368,16 @@ body {
     display: none;
   }
   
-  .notifications-container {
-    top: 20px;
-    left: 20px;
-    right: auto;
-    bottom: auto;
-  }
-  
   .fingerprint-sensor {
     display: flex !important;
   }
   
   .code-entry {
     display: none !important;
+  }
+  
+  .user-menu {
+    display: none;
   }
 }
 
@@ -1412,4 +1507,206 @@ body {
   width: 10px;
   height: 10px;
   cursor: sw-resize;
+}
+
+/* User Menu */
+.user-menu {
+  position: absolute;
+  top: 70px;
+  left: 20px;
+  width: 280px;
+  background: var(--frost-bg);
+  backdrop-filter: blur(50px) saturate(1.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  z-index: 200;
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-menu.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+.user-menu-content {
+  padding: 20px;
+}
+
+.user-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.user-menu-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-purple), var(--secondary-pink));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-menu-info {
+  flex: 1;
+}
+
+.user-menu-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.user-menu-status {
+  font-size: 12px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.user-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  width: 100%;
+}
+
+.user-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.user-menu-btn.shutdown-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+/* Settings Button */
+.settings-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, var(--primary-purple), var(--secondary-pink));
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(192, 132, 252, 0.3);
+}
+
+/* Mobile Notifications */
+@media (max-width: 768px) {
+  .notifications-container {
+    top: 70px;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 350px;
+  }
+  
+  .notification {
+    transform: translateY(-100px) scale(0.9);
+  }
+  
+  .notification.show {
+    transform: translateY(0) scale(1);
+  }
+  
+  .right-island {
+    transition: all 0.3s ease;
+  }
+  
+  .right-island.hidden {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+}
+
+/* Fingerprint to Dock Animation */
+.fingerprint-unlock {
+  animation: fingerprintToDock 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fingerprintToDock {
+  0% {
+    transform: scale(1);
+    border-radius: 50%;
+  }
+  50% {
+    transform: scale(0.8);
+    border-radius: 24px;
+  }
+  100% {
+    transform: scale(1) translateY(calc(100vh - 150px));
+    border-radius: 24px;
+    width: 300px;
+    height: 80px;
+  }
+}
+
+/* Window Controls Fix */
+.window-btn.minimize-btn:hover {
+  background: rgba(255, 193, 7, 0.8);
+}
+
+.window-btn.maximize-btn:hover {
+  background: rgba(40, 167, 69, 0.8);
+}
+
+/* Improved Window Dragging */
+.window.dragging {
+  user-select: none;
+  pointer-events: none;
+}
+
+.window.dragging * {
+  pointer-events: none;
+}
+
+.window-header {
+  user-select: none;
+}
+
+/* Custom Wallpaper */
+.custom-wallpaper {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
 }
