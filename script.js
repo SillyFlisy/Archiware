@@ -135,6 +135,7 @@ function openWindow(windowId) {
     focusWindow(window)
     setTimeout(() => {
       window.style.animation = ""
+      checkWindowOverlap()
     }, 10)
   }
 }
@@ -266,6 +267,7 @@ function closeWindow(windowId) {
       window.style.display = "none"
       window.style.animation = ""
       window.classList.remove('focused')
+      checkWindowOverlap()
     }, 300)
   }
 }
@@ -279,6 +281,51 @@ function focusWindow(window) {
   // Donner le focus à la fenêtre cliquée
   window.classList.add('focused')
   window.style.zIndex = ++windowZIndex
+}
+
+// Auto-hide dock and islands when window overlaps
+function checkWindowOverlap() {
+  const dock = document.querySelector('.dock')
+  const leftIsland = document.querySelector('.left-island')
+  const rightIsland = document.querySelector('.right-island')
+  const windows = document.querySelectorAll('.window:not([style*="display: none"])')
+  
+  let hideDock = false
+  let hideLeftIsland = false
+  let hideRightIsland = false
+  
+  windows.forEach(window => {
+    const rect = window.getBoundingClientRect()
+    
+    // Check dock overlap (bottom area)
+    if (rect.bottom > window.innerHeight - 100) {
+      hideDock = true
+    }
+    
+    // Check left island overlap (top-left area)
+    if (rect.top < 80 && rect.left < 300) {
+      hideLeftIsland = true
+    }
+    
+    // Check right island overlap (top-right area)
+    if (rect.top < 80 && rect.right > window.innerWidth - 300) {
+      hideRightIsland = true
+    }
+  })
+  
+  // Apply hiding with smooth transitions
+  dock.style.transform = hideDock ? 'translateX(-50%) translateY(100px)' : 'translateX(-50%) translateY(0)'
+  dock.style.opacity = hideDock ? '0' : '1'
+  
+  if (leftIsland) {
+    leftIsland.style.transform = hideLeftIsland ? 'translateY(-100px)' : 'translateY(0)'
+    leftIsland.style.opacity = hideLeftIsland ? '0' : '1'
+  }
+  
+  if (rightIsland) {
+    rightIsland.style.transform = hideRightIsland ? 'translateY(-100px)' : 'translateY(0)'
+    rightIsland.style.opacity = hideRightIsland ? '0' : '1'
+  }
 }
 
 // Focus windows on click
@@ -463,10 +510,12 @@ document.querySelectorAll('.window').forEach(window => {
     const deltaY = e.clientY - startY
     window.style.left = (startLeft + deltaX) + 'px'
     window.style.top = (startTop + deltaY) + 'px'
+    checkWindowOverlap()
   })
 
   document.addEventListener('mouseup', () => {
     isDragging = false
+    setTimeout(checkWindowOverlap, 100)
   })
 
   // Touch events for mobile
@@ -491,11 +540,13 @@ document.querySelectorAll('.window').forEach(window => {
     const deltaY = touch.clientY - startY
     window.style.left = (startLeft + deltaX) + 'px'
     window.style.top = (startTop + deltaY) + 'px'
+    checkWindowOverlap()
     e.preventDefault()
   })
 
   document.addEventListener('touchend', () => {
     isDragging = false
+    setTimeout(checkWindowOverlap, 100)
   })
 })
 
@@ -551,10 +602,12 @@ document.querySelectorAll('.window').forEach(window => {
     window.style.height = newHeight + 'px'
     window.style.left = newLeft + 'px'
     window.style.top = newTop + 'px'
+    checkWindowOverlap()
   })
 
   document.addEventListener('mouseup', () => {
     isResizing = false
+    setTimeout(checkWindowOverlap, 100)
   })
 })
 
