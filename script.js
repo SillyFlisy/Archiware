@@ -284,6 +284,10 @@ function focusWindow(window) {
 }
 
 // Auto-hide dock and islands when window overlaps
+let dockHidden = false
+let leftIslandHidden = false
+let rightIslandHidden = false
+
 function checkWindowOverlap() {
   const dock = document.querySelector('.dock')
   const leftIsland = document.querySelector('.left-island')
@@ -297,36 +301,126 @@ function checkWindowOverlap() {
   windows.forEach(window => {
     const rect = window.getBoundingClientRect()
     
-    // Check dock overlap (bottom area)
-    if (rect.bottom > window.innerHeight - 100) {
+    // Check dock overlap (bottom 80px)
+    if (rect.bottom > window.innerHeight - 80) {
       hideDock = true
     }
     
-    // Check left island overlap (top-left area)
-    if (rect.top < 80 && rect.left < 300) {
+    // Check left island overlap (top 60px, left 250px)
+    if (rect.top < 60 && rect.left < 250) {
       hideLeftIsland = true
     }
     
-    // Check right island overlap (top-right area)
-    if (rect.top < 80 && rect.right > window.innerWidth - 300) {
+    // Check right island overlap (top 60px, right 250px)
+    if (rect.top < 60 && rect.right > window.innerWidth - 250) {
       hideRightIsland = true
     }
   })
   
-  // Apply hiding with smooth transitions
-  dock.style.transform = hideDock ? 'translateX(-50%) translateY(100px)' : 'translateX(-50%) translateY(0)'
-  dock.style.opacity = hideDock ? '0' : '1'
+  // Apply hiding
+  if (hideDock !== dockHidden) {
+    dockHidden = hideDock
+    dock.style.transform = hideDock ? 'translateX(-50%) translateY(100%)' : 'translateX(-50%) translateY(0)'
+    dock.style.opacity = hideDock ? '0' : '1'
+  }
   
-  if (leftIsland) {
-    leftIsland.style.transform = hideLeftIsland ? 'translateY(-100px)' : 'translateY(0)'
+  if (hideLeftIsland !== leftIslandHidden && leftIsland) {
+    leftIslandHidden = hideLeftIsland
+    leftIsland.style.transform = hideLeftIsland ? 'translateY(-100%)' : 'translateY(0)'
     leftIsland.style.opacity = hideLeftIsland ? '0' : '1'
   }
   
-  if (rightIsland) {
-    rightIsland.style.transform = hideRightIsland ? 'translateY(-100px)' : 'translateY(0)'
+  if (hideRightIsland !== rightIslandHidden && rightIsland) {
+    rightIslandHidden = hideRightIsland
+    rightIsland.style.transform = hideRightIsland ? 'translateY(-100%)' : 'translateY(0)'
     rightIsland.style.opacity = hideRightIsland ? '0' : '1'
   }
 }
+
+// Hover zones to show hidden elements
+function initHoverZones() {
+  // Dock hover zone
+  const dockZone = document.createElement('div')
+  dockZone.style.cssText = `
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    z-index: 200;
+    pointer-events: all;
+  `
+  document.body.appendChild(dockZone)
+  
+  dockZone.addEventListener('mouseenter', () => {
+    if (dockHidden) {
+      const dock = document.querySelector('.dock')
+      dock.style.transform = 'translateX(-50%) translateY(0)'
+      dock.style.opacity = '1'
+    }
+  })
+  
+  dockZone.addEventListener('mouseleave', () => {
+    setTimeout(checkWindowOverlap, 100)
+  })
+  
+  // Left island hover zone
+  const leftZone = document.createElement('div')
+  leftZone.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 5px;
+    z-index: 200;
+    pointer-events: all;
+  `
+  document.body.appendChild(leftZone)
+  
+  leftZone.addEventListener('mouseenter', () => {
+    if (leftIslandHidden) {
+      const leftIsland = document.querySelector('.left-island')
+      if (leftIsland) {
+        leftIsland.style.transform = 'translateY(0)'
+        leftIsland.style.opacity = '1'
+      }
+    }
+  })
+  
+  leftZone.addEventListener('mouseleave', () => {
+    setTimeout(checkWindowOverlap, 100)
+  })
+  
+  // Right island hover zone
+  const rightZone = document.createElement('div')
+  rightZone.style.cssText = `
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 250px;
+    height: 5px;
+    z-index: 200;
+    pointer-events: all;
+  `
+  document.body.appendChild(rightZone)
+  
+  rightZone.addEventListener('mouseenter', () => {
+    if (rightIslandHidden) {
+      const rightIsland = document.querySelector('.right-island')
+      if (rightIsland) {
+        rightIsland.style.transform = 'translateY(0)'
+        rightIsland.style.opacity = '1'
+      }
+    }
+  })
+  
+  rightZone.addEventListener('mouseleave', () => {
+    setTimeout(checkWindowOverlap, 100)
+  })
+}
+
+// Initialize hover zones
+initHoverZones()
 
 // Focus windows on click
 document.querySelectorAll('.window').forEach(window => {
