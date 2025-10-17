@@ -60,6 +60,15 @@ function startBootSequence() {
   }, 4000)
 }
 
+function shouldShowBoot() {
+  const hasBooted = localStorage.getItem('archiware_has_booted')
+  return !hasBooted
+}
+
+function markAsBooted() {
+  localStorage.setItem('archiware_has_booted', 'true')
+}
+
 // macOS Settings Navigation
 function initSettingsNavigation() {
   const sidebarItems = document.querySelectorAll('.sidebar-item')
@@ -83,7 +92,13 @@ function initSettingsNavigation() {
 // Start boot sequence on page load
 window.addEventListener('load', () => {
   loadSettings()
-  startBootSequence()
+  if (shouldShowBoot()) {
+    startBootSequence()
+    markAsBooted()
+  } else {
+    document.getElementById('bootScreen').style.display = 'none'
+    isBooting = false
+  }
 })
 
 // Initialize enhanced settings when DOM is loaded
@@ -742,6 +757,7 @@ function restartSystem() {
   restartSound.play().catch(e => console.log('Erreur audio:', e))
   
   showNotification('Redémarrage en cours...')
+  localStorage.removeItem('archiware_has_booted')
   setTimeout(() => {
     location.reload()
   }, 2000)
