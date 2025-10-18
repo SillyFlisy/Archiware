@@ -1347,81 +1347,20 @@ function toggleWifi() {
 }
 
 function updateBrowserConnection() {
-  const fakeBrowser = document.querySelector('.fake-browser')
-  if (!wifiEnabled && fakeBrowser) {
-    fakeBrowser.innerHTML = `
-      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center; padding: 40px;">
+  const webview = document.getElementById('webview')
+  const browserFrame = document.getElementById('browserFrame')
+  
+  if (!wifiEnabled && webview) {
+    webview.innerHTML = `
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center; padding: 40px; background: #2a2a2a;">
         <img src="Assets/icons/no-internet.png" width="64" height="64" style="margin-bottom: 20px; opacity: 0.5;" alt="No Internet">
-        <h3 style="margin-bottom: 10px; color: #333;">Aucune connexion Internet</h3>
-        <p style="color: #666; font-size: 14px;">Vérifiez votre connexion Wi-Fi et réessayez.</p>
+        <h3 style="margin-bottom: 10px; color: #fff;">Aucune connexion Internet</h3>
+        <p style="color: #ccc; font-size: 14px;">Vérifiez votre connexion Wi-Fi et réessayez.</p>
       </div>
     `
-  } else if (wifiEnabled) {
-    // Restaurer le contenu normal du navigateur
-    fakeBrowser.innerHTML = `
-      <div class="fake-site" id="google">
-        <div class="google-logo">Google</div>
-        <div class="search-container">
-          <input type="text" class="fake-search" placeholder="Rechercher sur Google">
-          <button class="search-btn">Rechercher</button>
-        </div>
-        <div class="quick-links">
-          <a href="#" onclick="loadSite('youtube')">YouTube</a>
-          <a href="#" onclick="loadSite('github')">GitHub</a>
-          <a href="#" onclick="loadSite('stackoverflow')">Stack Overflow</a>
-        </div>
-      </div>
-      
-      <div class="fake-site" id="youtube" style="display:none">
-        <div class="yt-header">
-          <div class="yt-logo">YouTube</div>
-          <input type="text" class="yt-search" placeholder="Rechercher">
-        </div>
-        <div class="yt-content">
-          <div class="video-grid">
-            <div class="video-card">
-              <div class="video-thumb"></div>
-              <div class="video-title">Tutoriel JavaScript</div>
-            </div>
-            <div class="video-card">
-              <div class="video-thumb"></div>
-              <div class="video-title">CSS Animations</div>
-            </div>
-            <div class="video-card">
-              <div class="video-thumb"></div>
-              <div class="video-title">Web Development</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="fake-site" id="stackoverflow" style="display:none">
-        <div class="so-header">
-          <div class="so-logo">Stack Overflow</div>
-          <input type="text" class="so-search" placeholder="Rechercher...">
-        </div>
-        <div class="so-content">
-          <div class="question-list">
-            <div class="question-item">
-              <div class="question-title">Comment créer une animation CSS ?</div>
-              <div class="question-tags">
-                <span class="tag">css</span>
-                <span class="tag">animation</span>
-              </div>
-            </div>
-            <div class="question-item">
-              <div class="question-title">JavaScript async/await expliqué</div>
-              <div class="question-tags">
-                <span class="tag">javascript</span>
-                <span class="tag">async</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `
-    // Afficher Google par défaut
-    document.getElementById('google').style.display = 'block'
+  } else if (wifiEnabled && webview) {
+    // Restaurer l'iframe
+    webview.innerHTML = `<iframe id="browserFrame" src="https://www.google.com" frameborder="0" style="width: 100%; height: 100%; border: none;"></iframe>`
   }
 }
 
@@ -1518,49 +1457,39 @@ let browserHistory = ['google']
 let historyIndex = 0
 
 function navigateToUrl() {
-  const urlBar = document.getElementById('urlBar')
-  let url = urlBar.value.trim().toLowerCase()
+  if (!wifiEnabled) return
   
-  if (url.includes('youtube')) {
-    loadSite('youtube')
-  } else if (url.includes('github')) {
-    loadSite('github')
-  } else if (url.includes('stackoverflow')) {
-    loadSite('stackoverflow')
-  } else {
-    loadSite('google')
+  const urlBar = document.getElementById('urlBar')
+  const browserFrame = document.getElementById('browserFrame')
+  let url = urlBar.value.trim()
+  
+  if (!url.startsWith('http')) {
+    url = 'https://' + url
+  }
+  
+  if (browserFrame) {
+    browserFrame.src = url
   }
 }
 
 function loadSite(siteName) {
-  if (siteName === 'github') {
-    window.open('https://github.com/SillyFlisy/Archiware', '_blank')
-    return
-  }
+  if (!wifiEnabled) return
   
-  document.querySelectorAll('.fake-site').forEach(site => {
-    site.style.display = 'none'
-  })
-  
-  document.getElementById(siteName).style.display = 'block'
-  currentSite = siteName
-  
-  // Mettre à jour l'historique
-  if (historyIndex < browserHistory.length - 1) {
-    browserHistory = browserHistory.slice(0, historyIndex + 1)
-  }
-  browserHistory.push(siteName)
-  historyIndex = browserHistory.length - 1
-  
-  // Mettre à jour l'URL
+  const browserFrame = document.getElementById('browserFrame')
   const urlBar = document.getElementById('urlBar')
+  
   const urls = {
     google: 'https://www.google.com',
     youtube: 'https://www.youtube.com',
     github: 'https://github.com/SillyFlisy/Archiware',
     stackoverflow: 'https://stackoverflow.com'
   }
-  urlBar.value = urls[siteName]
+  
+  if (browserFrame && urls[siteName]) {
+    browserFrame.src = urls[siteName]
+    urlBar.value = urls[siteName]
+    currentSite = siteName
+  }
 }
 
 function goBack() {
