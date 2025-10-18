@@ -1655,17 +1655,14 @@ body {
 
 /* Switch Account Text */
 .switch-account-btn {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
+  margin-top: 16px;
+  margin-bottom: 8px;
   color: var(--text-secondary);
   font-size: 14px;
   font-weight: 400;
   cursor: pointer;
   transition: color 0.3s ease;
-  opacity: 0;
-  animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 1s forwards;
+  text-align: center;
 }
 
 .switch-account-btn:hover {
