@@ -52,6 +52,27 @@
                 </div>
                 <div class="fingerprint-text">Touchez le capteur</div>
             </div>
+            
+            <!-- Sélection d'utilisateur -->
+            <div class="user-selection" id="userSelection" style="display: none;">
+                <div class="user-list">
+                    <div class="user-card" onclick="selectUser()">
+                        <div class="user-avatar">
+                            <img id="lockUserProfileImage" src="" alt="" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                            <span id="lockUserAvatarText">Z</span>
+                        </div>
+                        <div class="user-name" id="lockUserName">zetsukae</div>
+                    </div>
+                    <div class="add-user-card" onclick="showNotification('Ajouter un utilisateur - Arrive bientôt !')">
+                        <div class="add-user-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </svg>
+                        </div>
+                        <div class="add-user-text">Ajouter un utilisateur</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
