@@ -793,7 +793,7 @@ body {
 }
 
 .toggle input:checked + .toggle-slider {
-  background: linear-gradient(135deg, var(--primary-purple), var(--secondary-pink));
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .toggle input:checked + .toggle-slider:before {
@@ -816,7 +816,7 @@ body {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-purple), var(--secondary-pink));
+  background: rgba(255, 255, 255, 0.8);
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -842,8 +842,8 @@ body {
 
 .text-input:focus {
   background: rgba(255, 255, 255, 0.08);
-  border-color: var(--primary-purple);
-  box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
 .select-input {
@@ -863,8 +863,8 @@ body {
 }
 
 .select-input:focus {
-  border-color: var(--primary-purple);
-  box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
 .about-info {
@@ -905,7 +905,7 @@ body {
 
 .url-bar:focus {
   background: rgba(255, 255, 255, 0.08);
-  border-color: var(--primary-purple);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .browser-content {
