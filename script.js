@@ -512,6 +512,12 @@ if (usernameInput) {
 }
 
 // Button Customization
+const originalButtonContent = {
+  close: '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="2"/></svg>',
+  maximize: '<svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  minimize: '<svg width="12" height="12" viewBox="0 0 12 12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="2"/></svg>'
+}
+
 function applyButtonStyle() {
   try {
     const styleSelect = document.getElementById('buttonStyleSelect')
@@ -522,6 +528,27 @@ function applyButtonStyle() {
     
     windows.forEach(window => {
       window.classList.remove('simplisme', 'custom')
+      
+      // Restaurer le contenu original
+      const closeBtn = window.querySelector('.close-btn')
+      const maxBtn = window.querySelector('.maximize-btn')
+      const minBtn = window.querySelector('.minimize-btn')
+      
+      if (closeBtn) {
+        closeBtn.innerHTML = originalButtonContent.close
+        closeBtn.style.background = ''
+        closeBtn.style.borderRadius = ''
+      }
+      if (maxBtn) {
+        maxBtn.innerHTML = originalButtonContent.maximize
+        maxBtn.style.background = ''
+        maxBtn.style.borderRadius = ''
+      }
+      if (minBtn) {
+        minBtn.innerHTML = originalButtonContent.minimize
+        minBtn.style.background = ''
+        minBtn.style.borderRadius = ''
+      }
       
       if (style === 'simplisme') {
         window.classList.add('simplisme')
@@ -543,31 +570,31 @@ function applyCustomButtonStyles(window) {
   if (closeBtn) {
     const shape = document.getElementById('closeShape')?.value || 'rounded'
     const color = document.getElementById('closeColor')?.value || '#ef4444'
-    const content = document.getElementById('closeContent')?.value || ''
+    const content = document.getElementById('closeContent')?.value
     
     closeBtn.style.background = color
     closeBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
-    if (content) closeBtn.innerHTML = content
+    if (content && content.trim()) closeBtn.innerHTML = content
   }
   
   if (maxBtn) {
     const shape = document.getElementById('maxShape')?.value || 'rounded'
     const color = document.getElementById('maxColor')?.value || '#22c55e'
-    const content = document.getElementById('maxContent')?.value || ''
+    const content = document.getElementById('maxContent')?.value
     
     maxBtn.style.background = color
     maxBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
-    if (content) maxBtn.innerHTML = content
+    if (content && content.trim()) maxBtn.innerHTML = content
   }
   
   if (minBtn) {
     const shape = document.getElementById('minShape')?.value || 'rounded'
     const color = document.getElementById('minColor')?.value || '#fbbf24'
-    const content = document.getElementById('minContent')?.value || ''
+    const content = document.getElementById('minContent')?.value
     
     minBtn.style.background = color
     minBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
-    if (content) minBtn.innerHTML = content
+    if (content && content.trim()) minBtn.innerHTML = content
   }
 }
 
