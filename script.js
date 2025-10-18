@@ -148,10 +148,32 @@ const codeInput = document.getElementById("codeInput")
 // Détecter si on est sur mobile
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768
 
+function showUserSelection() {
+  const timeDisplay = document.getElementById('timeDisplay')
+  const codeEntry = document.getElementById('codeEntry')
+  const userSelection = document.getElementById('userSelection')
+  const switchAccountBtn = document.getElementById('switchAccountBtn')
+  
+  // Masquer le champ de code et le bouton
+  if (codeEntry) codeEntry.classList.remove('visible')
+  if (switchAccountBtn) switchAccountBtn.style.display = 'none'
+  if (timeDisplay) timeDisplay.classList.remove('moved-up')
+  
+  // Mettre à jour les infos utilisateur et afficher la sélection
+  updateUserSelectionInfo()
+  if (userSelection) {
+    userSelection.style.display = 'block'
+    setTimeout(() => {
+      userSelection.classList.add('visible')
+    }, 100)
+  }
+}
+
 // Événements lockscreen
 lockscreenContent.addEventListener("click", (e) => {
   if (isLocked) {
     const userSelection = document.getElementById('userSelection')
+    const switchAccountBtn = document.getElementById('switchAccountBtn')
     
     if (isMobile) {
       // Sur mobile : déverrouillage direct
@@ -160,9 +182,10 @@ lockscreenContent.addEventListener("click", (e) => {
       // Ne rien faire si on est sur l'écran de sélection d'utilisateur
       return
     } else if (!codeEntry.classList.contains("visible")) {
-      // Sur desktop : afficher le champ de saisie
+      // Sur desktop : afficher le champ de saisie et le bouton
       timeDisplay.classList.add("moved-up")
       codeEntry.classList.add("visible")
+      if (switchAccountBtn) switchAccountBtn.style.display = 'block'
       setTimeout(() => {
         codeInput.focus()
       }, 400)
@@ -969,6 +992,7 @@ function selectUser() {
   const timeDisplay = document.getElementById('timeDisplay')
   const codeEntry = document.getElementById('codeEntry')
   const codeInput = document.getElementById('codeInput')
+  const switchAccountBtn = document.getElementById('switchAccountBtn')
   
   // Masquer l'écran de sélection
   if (userSelection) {
@@ -983,6 +1007,7 @@ function selectUser() {
   if (codeEntry) {
     setTimeout(() => {
       codeEntry.classList.add('visible')
+      if (switchAccountBtn) switchAccountBtn.style.display = 'block'
       if (codeInput) codeInput.focus()
     }, 400)
   }
