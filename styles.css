@@ -1653,6 +1653,32 @@ body {
   }
 }
 
+/* Switch Account Button */
+.switch-account-btn {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 1s forwards;
+}
+
+.switch-account-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+  transform: translateX(-50%) translateY(-2px);
+}
+
 /* User Selection */
 .user-selection {
   margin-top: 60px;
