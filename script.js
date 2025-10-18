@@ -1,1258 +1,1909 @@
-let isLocked = true
-let isBooting = true
-const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-let use24HourFormat = true
-let notificationQueue = []
-let isNotificationShowing = false
-let userMenuVisible = false
-let minimizedWindows = new Set()
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-// Load saved settings
-function loadSettings() {
-  const savedUsername = localStorage.getItem('archiware_username')
-  const savedWallpaper = localStorage.getItem('archiware_wallpaper')
-  const savedProfile = localStorage.getItem('archiware_profile')
-  const savedTimeFormat = localStorage.getItem('archiware_timeformat')
-  
-  if (savedUsername) {
-    document.getElementById('usernameDisplay').textContent = savedUsername
-    document.getElementById('menuUsername').textContent = savedUsername
-    document.getElementById('usernameInput').value = savedUsername
-    document.getElementById('avatarText').textContent = savedUsername.charAt(0).toUpperCase()
-    document.getElementById('menuAvatarText').textContent = savedUsername.charAt(0).toUpperCase()
+:root {
+  --primary-purple: #c084fc;
+  --secondary-pink: #f0abfc;
+  --glass-bg: rgba(0, 0, 0, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --frost-bg: rgba(0, 0, 0, 0.3);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  color: var(--text-primary);
+}
+
+::selection {
+  background: rgba(192, 132, 252, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background: rgba(192, 132, 252, 0.3);
+  color: white;
+}
+
+/* Boot Screen - macOS Style */
+.boot-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+}
+
+.boot-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.boot-content {
+  text-align: center;
+  animation: bootFadeIn 1.5s ease-out;
+}
+
+.boot-logo {
+  margin-bottom: 60px;
+}
+
+.boot-logo-img {
+  width: 80px;
+  height: 80px;
+  animation: logoGlow 2s ease-in-out infinite alternate;
+}
+
+.boot-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progress-bar {
+  width: 200px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: white;
+  border-radius: 2px;
+  width: 0%;
+  animation: progressFill 3s ease-out forwards;
+}
+
+@keyframes bootFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
-  if (savedWallpaper) {
-    document.querySelectorAll('.liquid-bg').forEach(bg => {
-      bg.style.backgroundImage = `url(${savedWallpaper})`
-    })
-  }
-  
-  if (savedProfile) {
-    document.getElementById('profileImage').src = savedProfile
-    document.getElementById('profileImage').style.display = 'block'
-    document.getElementById('menuProfileImage').src = savedProfile
-    document.getElementById('menuProfileImage').style.display = 'block'
-    document.getElementById('avatarText').style.display = 'none'
-    document.getElementById('menuAvatarText').style.display = 'none'
-  }
-  
-  if (savedTimeFormat) {
-    use24HourFormat = savedTimeFormat === '24'
-    document.getElementById('timeFormatSelect').value = savedTimeFormat
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-// Boot Animation
-function startBootSequence() {
-  const bootScreen = document.getElementById('bootScreen')
-  
-  // Play startup sound
-  const startupSound = new Audio('Assets/UI Sounds/startup.mp3')
-  startupSound.play().catch(e => console.log('Erreur audio:', e))
-  
-  setTimeout(() => {
-    bootScreen.classList.add('hidden')
-    setTimeout(() => {
-      bootScreen.style.display = 'none'
-      isBooting = false
-    }, 1000)
-  }, 4000)
-}
-
-function shouldShowBoot() {
-  const hasBooted = localStorage.getItem('archiware_has_booted')
-  return !hasBooted
-}
-
-function markAsBooted() {
-  localStorage.setItem('archiware_has_booted', 'true')
-}
-
-
-
-// Start boot sequence on page load
-window.addEventListener('load', () => {
-  loadSettings()
-  if (shouldShowBoot()) {
-    startBootSequence()
-    markAsBooted()
-  } else {
-    document.getElementById('bootScreen').style.display = 'none'
-    isBooting = false
+@keyframes logoGlow {
+  from {
+    opacity: 0.8;
   }
-})
-
-
-
-function updateTime() {
-  const now = new Date()
-  const hours = use24HourFormat ? now.getHours() : now.getHours() % 12 || 12
-  const minutes = String(now.getMinutes()).padStart(2, "0")
-  const ampm = use24HourFormat ? "" : now.getHours() >= 12 ? " PM" : " AM"
-  const timeString = `${String(hours).padStart(2, "0")}:${minutes}${ampm}`
-
-  const lockTime = document.getElementById("lockTime")
-  if (lockTime) lockTime.textContent = timeString
-
-  const topBarTime = document.getElementById("topBarTime")
-  if (topBarTime) topBarTime.textContent = timeString
-
-  const lockDate = document.getElementById("lockDate")
-  if (lockDate) {
-    const options = { weekday: "long", day: "numeric", month: "long", timeZone: userTimezone }
-    const dateString = now.toLocaleDateString("fr-FR", options)
-    lockDate.textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1)
+  to {
+    opacity: 1;
   }
 }
 
-// Initialize
-updateTime()
-setInterval(updateTime, 1000)
-
-// Prevent dragging of images and other elements
-document.addEventListener('dragstart', (e) => {
-  e.preventDefault()
-})
-
-// Close user menu when opening windows
-function openWindow(windowId) {
-  hideUserMenu()
-  const window = document.getElementById(windowId)
-  if (window) {
-    window.style.display = "block"
-    window.style.animation = "none"
-    
-    // Find available position
-    const pos = findAvailablePosition()
-    window.style.left = pos.x + 'px'
-    window.style.top = pos.y + 'px'
-    window.style.transform = 'translate(-50%, -50%)'
-    
-    // Register position
-    windowPositions.push({ id: windowId, x: pos.x, y: pos.y })
-    
-    focusWindow(window)
-    setTimeout(() => {
-      window.style.animation = ""
-      checkWindowOverlap()
-    }, 10)
-  }
-}
-
-const lockscreenContent = document.getElementById("lockscreenContent")
-const timeDisplay = document.getElementById("timeDisplay")
-const codeEntry = document.getElementById("codeEntry")
-const codeInput = document.getElementById("codeInput")
-
-// Détecter si on est sur mobile
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768
-
-function showUserSelection() {
-  const timeDisplay = document.getElementById('timeDisplay')
-  const codeEntry = document.getElementById('codeEntry')
-  const userSelection = document.getElementById('userSelection')
-  const switchAccountBtn = document.getElementById('switchAccountBtn')
-  
-  // Masquer le champ de code et le bouton
-  if (codeEntry) codeEntry.classList.remove('visible')
-  if (switchAccountBtn) switchAccountBtn.style.display = 'none'
-  if (timeDisplay) timeDisplay.classList.remove('moved-up')
-  
-  // Mettre à jour les infos utilisateur et afficher la sélection
-  updateUserSelectionInfo()
-  if (userSelection) {
-    userSelection.style.display = 'block'
-    setTimeout(() => {
-      userSelection.classList.add('visible')
-    }, 100)
-  }
-}
-
-// Événements lockscreen
-lockscreenContent.addEventListener("click", (e) => {
-  if (isLocked) {
-    const userSelection = document.getElementById('userSelection')
-    const switchAccountBtn = document.getElementById('switchAccountBtn')
-    
-    if (isMobile) {
-      // Sur mobile : déverrouillage direct
-      unlockDevice()
-    } else if (userSelection && userSelection.style.display === 'block') {
-      // Ne rien faire si on est sur l'écran de sélection d'utilisateur
-      return
-    } else if (!codeEntry.classList.contains("visible")) {
-      // Sur desktop : afficher le champ de saisie et le bouton
-      timeDisplay.classList.add("moved-up")
-      codeEntry.classList.add("visible")
-      if (switchAccountBtn) switchAccountBtn.style.display = 'block'
-      setTimeout(() => {
-        codeInput.focus()
-      }, 400)
-    }
-  }
-})
-
-// Événement tactile pour mobile
-lockscreenContent.addEventListener("touchstart", (e) => {
-  if (isLocked && isMobile) {
-    e.preventDefault()
-    unlockDevice()
-  }
-}, { passive: false })
-
-function unlockDevice() {
-  const lockscreen = document.getElementById("lockscreen")
-  const desktop = document.getElementById("desktop")
-  const fingerprintSensor = document.getElementById("fingerprintSensor")
-  const userSelection = document.getElementById('userSelection')
-
-  isLocked = false
-
-  // Play login sound
-  const loginSound = new Audio('Assets/UI Sounds/login.mp3')
-  loginSound.play().catch(e => console.log('Erreur audio:', e))
-
-  // Animation mobile : fingerprint vers dock
-  if (isMobile && fingerprintSensor) {
-    fingerprintSensor.classList.add('fingerprint-unlock')
-    setTimeout(() => {
-      // Faire apparaître le dock à la place
-      const dock = document.querySelector('.dock')
-      if (dock) {
-        dock.style.opacity = '1'
-        dock.style.transform = 'translateX(-50%) translateY(0)'
-      }
-    }, 750)
-  }
-
-  lockscreen.style.transition = "opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)"
-  lockscreen.style.opacity = "0"
-  lockscreen.style.transform = "scale(0.95)"
-
-  setTimeout(() => {
-    lockscreen.classList.remove("active")
-    lockscreen.style.display = "none"
-    
-    // Réinitialiser complètement le desktop
-    desktop.style.display = 'block'
-    desktop.style.opacity = '1'
-    desktop.style.transform = 'scale(1)'
-    desktop.classList.add("active")
-
-    // Réinitialiser tous les éléments du lockscreen
-    timeDisplay.classList.remove("moved-up")
-    codeEntry.classList.remove("visible")
-    if (codeInput) codeInput.value = ""
-    if (userSelection) {
-      userSelection.classList.remove('visible')
-      userSelection.style.display = 'none'
-    }
-  }, 800)
-}
-
-if (codeInput) {
-  codeInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && isLocked) {
-      e.preventDefault()
-      unlockDevice()
-    }
-  })
-}
-
-// Window Management
-let windowZIndex = 50
-let windowPositions = []
-
-function findAvailablePosition() {
-  const centerX = window.innerWidth / 2
-  const centerY = (window.innerHeight - 80) / 2
-  
-  // Positions possibles (centre, puis décalées)
-  const positions = [
-    { x: centerX, y: centerY }, // Centre
-    { x: centerX - 50, y: centerY - 50 }, // Haut gauche
-    { x: centerX + 50, y: centerY + 50 }, // Bas droite
-    { x: centerX + 50, y: centerY - 50 }, // Haut droite
-    { x: centerX - 50, y: centerY + 50 }, // Bas gauche
-    { x: centerX - 100, y: centerY }, // Gauche
-    { x: centerX + 100, y: centerY }, // Droite
-  ]
-  
-  // Vérifier quelle position est libre
-  for (const pos of positions) {
-    const isOccupied = windowPositions.some(wp => 
-      Math.abs(wp.x - pos.x) < 100 && Math.abs(wp.y - pos.y) < 100
-    )
-    if (!isOccupied) {
-      return pos
-    }
-  }
-  
-  // Si toutes les positions sont occupées, utiliser une position aléatoire
-  return {
-    x: centerX + (Math.random() - 0.5) * 200,
-    y: centerY + (Math.random() - 0.5) * 200
-  }
-}
-
-
-
-function closeWindow(windowId) {
-  const window = document.getElementById(windowId)
-  if (window) {
-    window.style.animation = "windowDisappear 0.3s cubic-bezier(0.4, 0, 1, 1) forwards"
-    
-    // Supprimer la position de la liste
-    windowPositions = windowPositions.filter(wp => wp.id !== windowId)
-    
-    setTimeout(() => {
-      window.style.display = "none"
-      window.style.animation = ""
-      window.classList.remove('focused')
-      checkWindowOverlap()
-    }, 300)
-  }
-}
-
-function focusWindow(window) {
-  // Retirer le focus de toutes les fenêtres
-  document.querySelectorAll('.window').forEach(w => {
-    w.classList.remove('focused')
-  })
-  
-  // Donner le focus à la fenêtre cliquée
-  window.classList.add('focused')
-  window.style.zIndex = ++windowZIndex
-}
-
-// Auto-hide dock and islands when window overlaps
-let dockHidden = false
-let leftIslandHidden = false
-let rightIslandHidden = false
-
-function checkWindowOverlap() {
-  const dock = document.querySelector('.dock')
-  const leftIsland = document.querySelector('.left-island')
-  const rightIsland = document.querySelector('.right-island')
-  const windows = document.querySelectorAll('.window:not([style*="display: none"])')
-  
-  let hideDock = false
-  let hideLeftIsland = false
-  let hideRightIsland = false
-  
-  windows.forEach(window => {
-    const rect = window.getBoundingClientRect()
-    
-    // Check dock overlap (bottom 80px)
-    if (rect.bottom > window.innerHeight - 80) {
-      hideDock = true
-    }
-    
-    // Check left island overlap (top 60px, left 250px)
-    if (rect.top < 60 && rect.left < 250) {
-      hideLeftIsland = true
-    }
-    
-    // Check right island overlap (top 60px, right 250px)
-    if (rect.top < 60 && rect.right > window.innerWidth - 250) {
-      hideRightIsland = true
-    }
-  })
-  
-  // Apply hiding for dock
-  if (hideDock !== dockHidden) {
-    dockHidden = hideDock
-    dock.style.transform = hideDock ? 'translateX(-50%) translateY(100%)' : 'translateX(-50%) translateY(0)'
-    dock.style.opacity = hideDock ? '0' : '1'
-  }
-  
-  // Apply hiding for left island
-  if (hideLeftIsland !== leftIslandHidden && leftIsland) {
-    leftIslandHidden = hideLeftIsland
-    leftIsland.style.transform = hideLeftIsland ? 'translateY(-100%)' : 'translateY(0)'
-    leftIsland.style.opacity = hideLeftIsland ? '0' : '1'
-  }
-  
-  // Apply hiding for right island
-  if (hideRightIsland !== rightIslandHidden && rightIsland) {
-    rightIslandHidden = hideRightIsland
-    rightIsland.style.transform = hideRightIsland ? 'translateY(-100%)' : 'translateY(0)'
-    rightIsland.style.opacity = hideRightIsland ? '0' : '1'
-  }
-}
-
-// Hover zones to show hidden elements
-function initHoverZones() {
-  // Dock hover zone
-  const dockZone = document.createElement('div')
-  dockZone.style.cssText = `
-    position: fixed;
-    bottom: 0;
-    left: 0;
+@keyframes progressFill {
+  to {
     width: 100%;
-    height: 10px;
-    z-index: 9999;
-    pointer-events: all;
-    background: transparent;
-  `
-  document.body.appendChild(dockZone)
-  
-  dockZone.addEventListener('mouseenter', () => {
-    const dock = document.querySelector('.dock')
-    dock.style.transform = 'translateX(-50%) translateY(0)'
-    dock.style.opacity = '1'
-  })
-  
-  dockZone.addEventListener('mouseleave', () => {
-    setTimeout(checkWindowOverlap, 100)
-  })
-  
-  // Left island hover zone
-  const leftZone = document.createElement('div')
-  leftZone.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 250px;
-    height: 10px;
-    z-index: 9999;
-    pointer-events: all;
-    background: transparent;
-  `
-  document.body.appendChild(leftZone)
-  
-  leftZone.addEventListener('mouseenter', () => {
-    const leftIsland = document.querySelector('.left-island')
-    if (leftIsland) {
-      leftIsland.style.transform = 'translateY(0)'
-      leftIsland.style.opacity = '1'
-    }
-  })
-  
-  leftZone.addEventListener('mouseleave', () => {
-    setTimeout(checkWindowOverlap, 100)
-  })
-  
-  // Right island hover zone
-  const rightZone = document.createElement('div')
-  rightZone.style.cssText = `
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 250px;
-    height: 10px;
-    z-index: 9999;
-    pointer-events: all;
-    background: transparent;
-  `
-  document.body.appendChild(rightZone)
-  
-  rightZone.addEventListener('mouseenter', () => {
-    const rightIsland = document.querySelector('.right-island')
-    if (rightIsland) {
-      rightIsland.style.transform = 'translateY(0)'
-      rightIsland.style.opacity = '1'
-    }
-  })
-  
-  rightZone.addEventListener('mouseleave', () => {
-    setTimeout(checkWindowOverlap, 100)
-  })
-  
-  // Add window hover detection to re-hide elements
-  document.querySelectorAll('.window').forEach(window => {
-    window.addEventListener('mouseenter', () => {
-      setTimeout(checkWindowOverlap, 50)
-    })
-  })
-}
-
-// Initialize hover zones after DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    initHoverZones()
-    // Initial check
-    checkWindowOverlap()
-  }, 1000)
-})
-
-// Focus windows on click
-document.querySelectorAll('.window').forEach(window => {
-  window.addEventListener('mousedown', () => {
-    focusWindow(window)
-  })
-})
-
-const style = document.createElement("style")
-style.textContent = `
-    @keyframes windowDisappear {
-        to {
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0.9);
-        }
-    }
-`
-document.head.appendChild(style)
-
-const usernameInput = document.getElementById("usernameInput")
-const timeFormatSelect = document.getElementById("timeFormatSelect")
-const transparencySlider = document.getElementById("transparencySlider")
-const animationsToggle = document.getElementById("animationsToggle")
-
-if (usernameInput) {
-  usernameInput.addEventListener("input", (e) => {
-    const newUsername = e.target.value
-    document.getElementById('usernameDisplay').textContent = newUsername
-    document.getElementById('menuUsername').textContent = newUsername
-    document.getElementById('avatarText').textContent = newUsername.charAt(0).toUpperCase()
-    document.getElementById('menuAvatarText').textContent = newUsername.charAt(0).toUpperCase()
-    localStorage.setItem('archiware_username', newUsername)
-  })
-}
-
-// Button Customization
-function applyButtonStyle() {
-  const style = document.getElementById('buttonStyleSelect')?.value || 'default'
-  const windows = document.querySelectorAll('.window')
-  
-  windows.forEach(window => {
-    window.classList.remove('simplisme', 'custom')
-    
-    if (style === 'simplisme') {
-      window.classList.add('simplisme')
-    } else if (style === 'custom') {
-      window.classList.add('custom')
-      applyCustomButtonStyles(window)
-    }
-  })
-}
-
-function applyCustomButtonStyles(window) {
-  const closeBtn = window.querySelector('.close-btn')
-  const maxBtn = window.querySelector('.maximize-btn')
-  const minBtn = window.querySelector('.minimize-btn')
-  
-  if (closeBtn) {
-    const shape = document.getElementById('closeShape')?.value || 'rounded'
-    const color = document.getElementById('closeColor')?.value || '#ef4444'
-    const content = document.getElementById('closeContent')?.value || ''
-    
-    closeBtn.style.background = color
-    closeBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
-    if (content) closeBtn.innerHTML = content
-  }
-  
-  if (maxBtn) {
-    const shape = document.getElementById('maxShape')?.value || 'rounded'
-    const color = document.getElementById('maxColor')?.value || '#22c55e'
-    const content = document.getElementById('maxContent')?.value || ''
-    
-    maxBtn.style.background = color
-    maxBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
-    if (content) maxBtn.innerHTML = content
-  }
-  
-  if (minBtn) {
-    const shape = document.getElementById('minShape')?.value || 'rounded'
-    const color = document.getElementById('minColor')?.value || '#fbbf24'
-    const content = document.getElementById('minContent')?.value || ''
-    
-    minBtn.style.background = color
-    minBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
-    if (content) minBtn.innerHTML = content
   }
 }
 
-// Settings Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-  // Button Style Selector
-  const buttonStyleSelect = document.getElementById('buttonStyleSelect')
-  const customButtonSettings = document.getElementById('customButtonSettings')
-  
-  if (buttonStyleSelect) {
-    buttonStyleSelect.addEventListener('change', (e) => {
-      const isCustom = e.target.value === 'custom'
-      if (customButtonSettings) {
-        customButtonSettings.style.display = isCustom ? 'block' : 'none'
-      }
-      applyButtonStyle()
-    })
-  }
-  
-  // Custom button controls
-  const customControls = ['closeShape', 'closeColor', 'closeContent', 'maxShape', 'maxColor', 'maxContent', 'minShape', 'minColor', 'minContent']
-  customControls.forEach(id => {
-    const element = document.getElementById(id)
-    if (element) {
-      element.addEventListener('input', applyButtonStyle)
-    }
-  })
-  
-  const wallpaperInput = document.getElementById('wallpaperInput')
-  if (wallpaperInput) {
-    wallpaperInput.addEventListener('change', (e) => {
-      const file = e.target.files[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          const imageUrl = e.target.result
-          document.querySelectorAll('.liquid-bg').forEach(bg => {
-            bg.style.backgroundImage = `url(${imageUrl})`
-          })
-          localStorage.setItem('archiware_wallpaper', imageUrl)
-          showNotification('Fond d\'écran modifié avec succès')
-        }
-        reader.readAsDataURL(file)
-      }
-    })
-  }
-  
-  const profileInput = document.getElementById('profileInput')
-  if (profileInput) {
-    profileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          const imageUrl = e.target.result
-          document.getElementById('profileImage').src = imageUrl
-          document.getElementById('profileImage').style.display = 'block'
-          document.getElementById('menuProfileImage').src = imageUrl
-          document.getElementById('menuProfileImage').style.display = 'block'
-          document.getElementById('avatarText').style.display = 'none'
-          document.getElementById('menuAvatarText').style.display = 'none'
-          localStorage.setItem('archiware_profile', imageUrl)
-          showNotification('Photo de profil modifiée avec succès')
-        }
-        reader.readAsDataURL(file)
-      }
-    })
-  }
-  
-  // Apply initial button style
-  setTimeout(applyButtonStyle, 100)
-})
-
-if (timeFormatSelect) {
-  timeFormatSelect.addEventListener("change", (e) => {
-    use24HourFormat = e.target.value === "24"
-    localStorage.setItem('archiware_timeformat', e.target.value)
-    updateTime()
-  })
+/* Liquid Background */
+.liquid-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('wallpaper.jpeg') center/cover no-repeat;
+  overflow: hidden;
+  z-index: 0;
+  transition: filter 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-// Add CSS animations for window controls
-const windowAnimations = document.createElement("style")
-windowAnimations.textContent = `
-  @keyframes windowMinimize {
-    to {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.1) translateY(200px);
-    }
-  }
-  
-  .window.maximized {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-`
-document.head.appendChild(windowAnimations)
-
-if (transparencySlider) {
-  transparencySlider.addEventListener("input", (e) => {
-    const value = e.target.value / 100
-    const opacity = 0.05 + value * 0.4
-    const blur = value * 50
-    
-    document.documentElement.style.setProperty("--glass-bg", `rgba(0, 0, 0, ${opacity})`)
-    
-    // Appliquer le blur à toutes les fenêtres
-    document.querySelectorAll('.window, .dock-container, .island, .notification, .user-menu').forEach(element => {
-      element.style.backdropFilter = `blur(${blur}px) saturate(1.8)`
-    })
-  })
+/* Blur effect for lockscreen */
+.lockscreen .liquid-bg {
+  filter: blur(8px);
 }
 
-if (animationsToggle) {
-  animationsToggle.addEventListener("change", (e) => {
-    if (!e.target.checked) {
-      document.body.style.setProperty("--animation-speed", "0s")
-    } else {
-      document.body.style.removeProperty("--animation-speed")
-    }
-  })
+.desktop .liquid-bg {
+  filter: blur(0px);
 }
 
-// Enhanced Window Controls
-function minimizeWindow(windowId) {
-  const window = document.getElementById(windowId)
-  if (window) {
-    window.style.animation = 'windowMinimize 0.3s cubic-bezier(0.4, 0, 1, 1) forwards'
-    minimizedWindows.add(windowId)
-    
-    setTimeout(() => {
-      window.style.display = 'none'
-      window.style.animation = ''
-    }, 300)
+
+
+/* Lockscreen */
+.lockscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lockscreen.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.lockscreen-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  transform: translateY(20px);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-function maximizeWindow(windowId) {
-  const window = document.getElementById(windowId)
-  if (window) {
-    const isMaximized = window.classList.contains('maximized')
-    
-    if (isMaximized) {
-      window.classList.remove('maximized')
-      window.style.width = '700px'
-      window.style.height = '500px'
-      window.style.left = '50%'
-      window.style.top = '50%'
-      window.style.transform = 'translate(-50%, -50%)'
-    } else {
-      window.classList.add('maximized')
-      window.style.width = 'calc(100vw - 40px)'
-      window.style.height = 'calc(100vh - 120px)'
-      window.style.left = '20px'
-      window.style.top = '20px'
-      window.style.transform = 'none'
-    }
+.time-display {
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.time-display.moved-up {
+  transform: translateY(-80px);
+}
+
+.time-display .time {
+  font-size: 120px;
+  font-weight: 300;
+  letter-spacing: -2px;
+  margin-bottom: 8px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.time-display .date {
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.unlock-indicator {
+  margin-top: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 50px;
+  font-size: 16px;
+  color: var(--text-secondary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
   }
 }
 
-// Simple window dragging
-document.querySelectorAll('.window').forEach(window => {
-  const header = window.querySelector('.window-header')
-  let isDragging = false
-  let startX, startY, startLeft, startTop
-
-  header.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.window-controls')) return
-    isDragging = true
-    startX = e.clientX
-    startY = e.clientY
-    const rect = window.getBoundingClientRect()
-    startLeft = rect.left
-    startTop = rect.top
-    window.style.transform = 'none'
-    focusWindow(window)
-    e.preventDefault()
-  })
-
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return
-    const deltaX = e.clientX - startX
-    const deltaY = e.clientY - startY
-    window.style.left = (startLeft + deltaX) + 'px'
-    window.style.top = (startTop + deltaY) + 'px'
-    checkWindowOverlap()
-  })
-
-  document.addEventListener('mouseup', () => {
-    isDragging = false
-    setTimeout(checkWindowOverlap, 100)
-  })
-
-  // Touch events for mobile
-  header.addEventListener('touchstart', (e) => {
-    if (e.target.closest('.window-controls')) return
-    isDragging = true
-    const touch = e.touches[0]
-    startX = touch.clientX
-    startY = touch.clientY
-    const rect = window.getBoundingClientRect()
-    startLeft = rect.left
-    startTop = rect.top
-    window.style.transform = 'none'
-    focusWindow(window)
-    e.preventDefault()
-  })
-
-  document.addEventListener('touchmove', (e) => {
-    if (!isDragging) return
-    const touch = e.touches[0]
-    const deltaX = touch.clientX - startX
-    const deltaY = touch.clientY - startY
-    window.style.left = (startLeft + deltaX) + 'px'
-    window.style.top = (startTop + deltaY) + 'px'
-    checkWindowOverlap()
-    e.preventDefault()
-  })
-
-  document.addEventListener('touchend', () => {
-    isDragging = false
-    setTimeout(checkWindowOverlap, 100)
-  })
-})
-
-// Simple window resizing
-document.querySelectorAll('.window').forEach(window => {
-  const handles = window.querySelectorAll('.resize-handle')
-  let isResizing = false
-  let resizeType = ''
-  let startX, startY, startWidth, startHeight, startLeft, startTop
-
-  handles.forEach(handle => {
-    handle.addEventListener('mousedown', (e) => {
-      isResizing = true
-      resizeType = handle.classList[1]
-      startX = e.clientX
-      startY = e.clientY
-      const rect = window.getBoundingClientRect()
-      startWidth = rect.width
-      startHeight = rect.height
-      startLeft = rect.left
-      startTop = rect.top
-      e.preventDefault()
-      e.stopPropagation()
-    })
-  })
-
-  document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return
-    
-    const deltaX = e.clientX - startX
-    const deltaY = e.clientY - startY
-    
-    let newWidth = startWidth
-    let newHeight = startHeight
-    let newLeft = startLeft
-    let newTop = startTop
-    
-    if (resizeType.includes('e')) newWidth = startWidth + deltaX
-    if (resizeType.includes('w')) {
-      newWidth = startWidth - deltaX
-      newLeft = startLeft + deltaX
-    }
-    if (resizeType.includes('s')) newHeight = startHeight + deltaY
-    if (resizeType.includes('n')) {
-      newHeight = startHeight - deltaY
-      newTop = startTop + deltaY
-    }
-    
-    newWidth = Math.max(300, newWidth)
-    newHeight = Math.max(200, newHeight)
-    
-    window.style.width = newWidth + 'px'
-    window.style.height = newHeight + 'px'
-    window.style.left = newLeft + 'px'
-    window.style.top = newTop + 'px'
-    checkWindowOverlap()
-  })
-
-  document.addEventListener('mouseup', () => {
-    isResizing = false
-    setTimeout(checkWindowOverlap, 100)
-  })
-})
-
-// Window controls
-document.querySelectorAll('.minimize-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation()
-    const windowId = e.target.closest('.window').id
-    minimizeWindow(windowId)
-  })
-})
-
-document.querySelectorAll('.maximize-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation()
-    const windowId = e.target.closest('.window').id
-    maximizeWindow(windowId)
-  })
-})
-
-
-
-
-
-// Créer le conteneur de notifications
-let notificationsContainer = document.querySelector('.notifications-container')
-if (!notificationsContainer) {
-  notificationsContainer = document.createElement('div')
-  notificationsContainer.className = 'notifications-container'
-  document.body.appendChild(notificationsContainer)
+/* Updated code entry styles for simple input */
+.code-entry {
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  opacity: 0;
+  transform: translateY(30px);
+  pointer-events: none;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-// Enhanced Notification System with Queue
-function showNotification(message) {
-  // Vérifier si la notification existe déjà dans la file d'attente
-  if (!notificationQueue.includes(message)) {
-    notificationQueue.push(message)
+.code-entry.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.code-input {
+  width: 320px;
+  max-width: 80vw;
+  padding: 18px 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px);
+  border: 2px solid var(--glass-border);
+  border-radius: 16px;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 400;
+  text-align: center;
+  outline: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.code-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.code-input:focus {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3), 0 0 0 4px rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.code-hint {
+  font-size: 15px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
+}
+
+.code-dots {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.code-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.code-dot.filled {
+  background: white;
+  border-color: white;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+  transform: scale(1.2);
+}
+
+.code-dot.shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
   }
-  processNotificationQueue()
-}
-
-function processNotificationQueue() {
-  if (isNotificationShowing || notificationQueue.length === 0) return
-  
-  isNotificationShowing = true
-  const message = notificationQueue.shift()
-  
-  // Hide right island on mobile when notification appears
-  if (isMobile) {
-    const rightIsland = document.querySelector('.right-island')
-    if (rightIsland) {
-      rightIsland.classList.add('hidden')
-    }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-8px);
   }
-  
-  // Play notification sound
-  const notificationSound = new Audio('Assets/UI Sounds/notification.mp3')
-  notificationSound.play().catch(e => console.log('Erreur audio:', e))
-
-  // Create notification element
-  const notification = document.createElement('div')
-  notification.className = 'notification'
-  notification.innerHTML = `
-    <div class="notification-content">
-      <div class="notification-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-        </svg>
-      </div>
-      <div class="notification-text">${message}</div>
-    </div>
-  `
-
-  notificationsContainer.appendChild(notification)
-
-  // Show animation
-  setTimeout(() => notification.classList.add('show'), 100)
-
-  // Hide after 3 seconds
-  setTimeout(() => {
-    notification.classList.remove('show')
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.remove()
-      }
-      isNotificationShowing = false
-      
-      // Show right island again on mobile
-      if (isMobile) {
-        const rightIsland = document.querySelector('.right-island')
-        if (rightIsland) {
-          rightIsland.classList.remove('hidden')
-        }
-      }
-      
-      // Process next notification in queue
-      processNotificationQueue()
-    }, 400)
-  }, 3000)
-}
-
-// User Menu Functions
-function toggleUserMenu() {
-  const userMenu = document.getElementById('userMenu')
-  userMenuVisible = !userMenuVisible
-  
-  if (userMenuVisible) {
-    userMenu.classList.add('show')
-    // Close menu when clicking outside
-    setTimeout(() => {
-      document.addEventListener('click', closeUserMenuOnClickOutside)
-    }, 100)
-  } else {
-    hideUserMenu()
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(8px);
   }
 }
 
-function hideUserMenu() {
-  const userMenu = document.getElementById('userMenu')
-  userMenu.classList.remove('show')
-  userMenuVisible = false
-  document.removeEventListener('click', closeUserMenuOnClickOutside)
+.code-message {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-function closeUserMenuOnClickOutside(e) {
-  const userMenu = document.getElementById('userMenu')
-  const userProfile = document.querySelector('.user-profile')
-  
-  if (!userMenu.contains(e.target) && !userProfile.contains(e.target)) {
-    hideUserMenu()
+.code-message.error {
+  color: #ef4444;
+}
+
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.numpad-btn {
+  width: 70px;
+  height: 70px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  color: white;
+  font-size: 24px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  user-select: none;
+}
+
+.numpad-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.numpad-btn:active {
+  transform: scale(0.95);
+}
+
+.numpad-btn.delete-btn,
+.numpad-btn.enter-btn {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.numpad-btn.enter-btn:hover {
+  background: linear-gradient(135deg, var(--primary-purple), var(--secondary-pink));
+}
+
+.swipe-area {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  cursor: grab;
+  z-index: 3;
+}
+
+.swipe-area:active {
+  cursor: grabbing;
+}
+
+/* Desktop */
+.desktop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transform: scale(1.1);
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.desktop.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Islands */
+.island {
+  position: absolute;
+  top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--frost-bg);
+  backdrop-filter: blur(40px) saturate(1.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  z-index: 100;
+  animation: slideDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.island:hover {
+  background: rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.left-island {
+  left: 20px;
+}
+
+.right-island {
+  right: 20px;
+}
+
+.right-island .status-icons svg {
+  opacity: 0.6;
+}
+
+.right-island .time-display {
+  opacity: 0.8;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-// System Functions
-function restartSystem() {
-  const restartSound = new Audio('Assets/UI Sounds/restart.mp3')
-  restartSound.play().catch(e => console.log('Erreur audio:', e))
-  
-  showNotification('Redémarrage en cours...')
-  localStorage.removeItem('archiware_has_booted')
-  setTimeout(() => {
-    location.reload()
-  }, 2000)
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-function disconnectUser() {
-  const disconnectSound = new Audio('Assets/UI Sounds/disconnect.mp3')
-  disconnectSound.play().catch(e => console.log('Erreur audio:', e))
-  
-  hideUserMenu()
-  
-  const lockscreen = document.getElementById('lockscreen')
-  const desktop = document.getElementById('desktop')
-  
-  isLocked = true
-  
-  // Fermer toutes les fenêtres ouvertes
-  document.querySelectorAll('.window').forEach(window => {
-    window.style.display = 'none'
-  })
-  
-  // Réinitialiser complètement l'état du lockscreen
-  const timeDisplay = document.getElementById('timeDisplay')
-  const codeEntry = document.getElementById('codeEntry')
-  const codeInput = document.getElementById('codeInput')
-  const userSelection = document.getElementById('userSelection')
-  
-  // S'assurer que tous les éléments sont dans leur état initial
-  if (timeDisplay) timeDisplay.classList.remove('moved-up')
-  if (codeEntry) codeEntry.classList.remove('visible')
-  if (codeInput) codeInput.value = ''
-  if (userSelection) {
-    userSelection.classList.remove('visible')
-    userSelection.style.display = 'none'
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-purple), var(--secondary-pink));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.username {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.island-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.island-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-icons svg {
+  opacity: 0.9;
+}
+
+.status-icons .time-display {
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+/* Windows Container */
+.windows-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 80px;
+  z-index: 10;
+}
+
+/* Notifications Stack */
+.notifications-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.notification {
+  background: var(--frost-bg);
+  backdrop-filter: blur(40px) saturate(1.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateX(400px) scale(0.9);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 350px;
+  min-width: 280px;
+  pointer-events: all;
+}
+
+.notification.show {
+  transform: translateX(0) scale(1);
+  opacity: 1;
+}
+
+.notification:not(:last-child) {
+  transform: translateX(0) scale(0.95);
+  opacity: 0.8;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--primary-purple), var(--secondary-pink));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.notification-text {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  user-select: text;
+}
+
+.window {
+  position: absolute;
+  width: 700px;
+  max-width: 90vw;
+  height: 500px;
+  max-height: 70vh;
+  background: var(--frost-bg);
+  backdrop-filter: blur(50px) saturate(1.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+  animation: windowAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 50;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.window.dragging {
+  transition: none;
+  will-change: transform;
+}
+
+.window.focused {
+  z-index: 100;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}.34, 1.56, 0.64, 1);
+}
+
+@keyframes windowAppear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
   }
-  
-  // Mettre à jour les informations utilisateur
-  updateUserSelectionInfo()
-  
-  // Réinitialiser les styles du desktop
-  desktop.style.opacity = '0'
-  desktop.style.transform = 'scale(1.05)'
-  
-  setTimeout(() => {
-    desktop.classList.remove('active')
-    desktop.style.display = 'none'
-    
-    // Réinitialiser le lockscreen
-    lockscreen.style.display = 'block'
-    lockscreen.style.opacity = '1'
-    lockscreen.style.transform = 'scale(1)'
-    lockscreen.classList.add('active')
-    
-    // S'assurer que timeDisplay est bien centré
-    if (timeDisplay) {
-      timeDisplay.classList.remove('moved-up')
-      timeDisplay.style.transform = 'translateY(0)'
-    }
-    
-    // Afficher l'écran de sélection d'utilisateur
-    if (userSelection) {
-      userSelection.style.display = 'block'
-      setTimeout(() => {
-        userSelection.classList.add('visible')
-      }, 100)
-    }
-  }, 800)
-}
-
-function updateUserSelectionInfo() {
-  const savedUsername = localStorage.getItem('archiware_username') || 'zetsukae'
-  const savedProfile = localStorage.getItem('archiware_profile')
-  
-  const lockUserName = document.getElementById('lockUserName')
-  const lockUserAvatarText = document.getElementById('lockUserAvatarText')
-  const lockUserProfileImage = document.getElementById('lockUserProfileImage')
-  
-  if (lockUserName) lockUserName.textContent = savedUsername
-  if (lockUserAvatarText) lockUserAvatarText.textContent = savedUsername.charAt(0).toUpperCase()
-  
-  if (savedProfile && lockUserProfileImage) {
-    lockUserProfileImage.src = savedProfile
-    lockUserProfileImage.style.display = 'block'
-    lockUserAvatarText.style.display = 'none'
-  } else {
-    if (lockUserProfileImage) lockUserProfileImage.style.display = 'none'
-    if (lockUserAvatarText) lockUserAvatarText.style.display = 'block'
-  }
-}
-
-function selectUser() {
-  const userSelection = document.getElementById('userSelection')
-  const timeDisplay = document.getElementById('timeDisplay')
-  const codeEntry = document.getElementById('codeEntry')
-  const codeInput = document.getElementById('codeInput')
-  const switchAccountBtn = document.getElementById('switchAccountBtn')
-  
-  // Masquer l'écran de sélection
-  if (userSelection) {
-    userSelection.classList.remove('visible')
-    setTimeout(() => {
-      userSelection.style.display = 'none'
-    }, 400)
-  }
-  
-  // Afficher l'écran de saisie du code
-  if (timeDisplay) timeDisplay.classList.add('moved-up')
-  if (codeEntry) {
-    setTimeout(() => {
-      codeEntry.classList.add('visible')
-      if (switchAccountBtn) switchAccountBtn.style.display = 'block'
-      if (codeInput) codeInput.focus()
-    }, 400)
-  }
-}
-
-function shutdownSystem() {
-  const warningSound = new Audio('Assets/UI Sounds/warning.mp3')
-  warningSound.play().catch(e => console.log('Erreur audio:', e))
-  
-  showNotification('Arrêt du système...')
-  setTimeout(() => {
-    document.body.style.background = 'black'
-    document.body.innerHTML = '<div style="color: white; text-align: center; padding-top: 45vh; font-family: monospace;">Système arrêté. Vous pouvez fermer cette fenêtre.</div>'
-  }, 2000)
-}
-
-function resetSystem() {
-  if (confirm('Voulez-vous vraiment réinitialiser l\'ordinateur ? Toutes les données seront effacées.')) {
-    const warningSound = new Audio('Assets/UI Sounds/warning.mp3')
-    warningSound.play().catch(e => console.log('Erreur audio:', e))
-    
-    showNotification('Réinitialisation en cours...')
-    
-    // Clear all localStorage
-    localStorage.clear()
-    
-    setTimeout(() => {
-      location.reload()
-    }, 2000)
-  }
-}
-
-// Island interactions
-function showAppGrid() {
-  showNotification("Grille d'applications - Arrive bientôt !")
-}
-
-function showControlCenter() {
-  showNotification("Centre de contrôle - Arrive bientôt !")
-}
-
-// Dock icon bounce effect
-document.querySelectorAll(".dock-icon").forEach((icon) => {
-  icon.addEventListener("click", function () {
-    this.style.animation = "iconBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)"
-    setTimeout(() => {
-      this.style.animation = ""
-    }, 500)
-  })
-})
-
-const bounceStyle = document.createElement("style")
-bounceStyle.textContent = `
-    @keyframes iconBounce {
-        0%, 100% {
-            transform: translateY(0) scale(1);
-        }
-        50% {
-            transform: translateY(-20px) scale(1.2);
-        }
-    }
-`
-document.head.appendChild(bounceStyle)
-
-// Navigation simulée
-let currentSite = 'google'
-let browserHistory = ['google']
-let historyIndex = 0
-
-function navigateToUrl() {
-  const urlBar = document.getElementById('urlBar')
-  let url = urlBar.value.trim().toLowerCase()
-  
-  if (url.includes('youtube')) {
-    loadSite('youtube')
-  } else if (url.includes('github')) {
-    loadSite('github')
-  } else if (url.includes('stackoverflow')) {
-    loadSite('stackoverflow')
-  } else {
-    loadSite('google')
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
-function loadSite(siteName) {
-  if (siteName === 'github') {
-    window.open('https://github.com/SillyFlisy/Archiware', '_blank')
-    return
+.window-header {
+  height: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--glass-border);
+  cursor: move;
+}
+
+.window-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.window-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.window-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.window-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.close-btn:hover {
+  background: rgba(239, 68, 68, 0.8);
+}
+
+.window-content {
+  height: calc(100% - 48px);
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* Settings Window */
+.settings-section {
+  margin-bottom: 32px;
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.settings-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.setting-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateX(4px);
+}
+
+.setting-info {
+  flex: 1;
+}
+
+.setting-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.setting-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  cursor: pointer;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
+  border-radius: 26px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-slider:before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.toggle input:checked + .toggle-slider {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.toggle input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}
+
+.slider {
+  width: 140px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+
+
+.text-input {
+  width: 180px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.text-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.select-input {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.select-input:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.select-input:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.about-info {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.about-info p {
+  margin: 8px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.about-info p strong {
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+/* Browser Window */
+.browser-bar {
+  margin-bottom: 20px;
+}
+
+.url-bar {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.url-bar:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.browser-content {
+  height: calc(100% - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+}
+
+.browser-placeholder {
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.browser-placeholder svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.browser-placeholder p {
+  font-size: 18px;
+}
+
+/* Dock */
+.dock {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  animation: dockAppear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s backwards;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dockAppear {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.dock-container {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--frost-bg);
+  backdrop-filter: blur(50px) saturate(1.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.dock-icon {
+  width: 52px;
+  height: 52px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.dock-icon svg {
+  width: 28px;
+  height: 28px;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dock-icon:hover {
+  transform: translateY(-12px) scale(1.15);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.dock-icon:hover svg {
+  transform: scale(1.1);
+}
+
+.dock-icon:active {
+  transform: translateY(-8px) scale(1.1);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .time-display .time {
+    font-size: 80px;
+  }
+
+  .time-display .date {
+    font-size: 20px;
+  }
+
+  .window {
+    width: 95vw;
+    height: 80vh;
+  }
+
+  .dock-container {
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .dock-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .dock-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Added responsive styles for numpad */
+  .numpad {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .numpad-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+  }
+}
+/* Browser Navigation */
+.browser-bar {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.url-bar {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  user-select: text;
+}
+
+.url-bar:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.browser-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.fake-browser {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow-y: auto;
+}
+
+.fake-site {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  background: #000;
+  color: white;
+}
+
+/* Google */
+#google {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.google-logo {
+  font-size: 72px;
+  font-weight: 400;
+  color: #4285f4;
+  margin-bottom: 30px;
+}
+
+.search-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.fake-search {
+  width: 400px;
+  padding: 12px 16px;
+  border: 1px solid #333;
+  border-radius: 24px;
+  font-size: 16px;
+  outline: none;
+  user-select: text;
+  background: #111;
+  color: white;
+}
+
+.search-btn {
+  padding: 12px 24px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.quick-links {
+  display: flex;
+  gap: 20px;
+}
+
+.quick-links a {
+  color: #1a73e8;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.quick-links a:hover {
+  background: #f8f9fa;
+}
+
+/* YouTube */
+.yt-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+}
+
+.yt-logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff0000;
+}
+
+.yt-search {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #333;
+  border-radius: 2px;
+  user-select: text;
+  background: #111;
+  color: white;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.video-card {
+  cursor: pointer;
+}
+
+.video-thumb {
+  width: 100%;
+  height: 140px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.video-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* GitHub */
+.gh-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+}
+
+.gh-logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.gh-search {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1d5da;
+  border-radius: 6px;
+  user-select: text;
+}
+
+.repo-item {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.repo-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0366d6;
+  margin-bottom: 4px;
+}
+
+.repo-desc {
+  color: #586069;
+  font-size: 14px;
+}
+
+/* Stack Overflow */
+.so-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+}
+
+.so-logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #f48024;
+}
+
+.so-search {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #333;
+  border-radius: 3px;
+  user-select: text;
+  background: #111;
+  color: white;
+}
+
+.question-item {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.question-title {
+  font-size: 16px;
+  color: #0077cc;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.question-tags {
+  display: flex;
+  gap: 8px;
+}
+
+.tag {
+  background: #e1ecf4;
+  color: #39739d;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.window-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#settingsWindow .window-content {
+  overflow: auto;
+  padding: 24px;
+}
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .left-island {
+    display: none;
   }
   
-  document.querySelectorAll('.fake-site').forEach(site => {
-    site.style.display = 'none'
-  })
+  .fingerprint-sensor {
+    display: flex !important;
+  }
   
-  document.getElementById(siteName).style.display = 'block'
-  currentSite = siteName
+  .code-entry {
+    display: none !important;
+  }
   
-  // Mettre à jour l'historique
-  if (historyIndex < browserHistory.length - 1) {
-    browserHistory = browserHistory.slice(0, historyIndex + 1)
+  .user-menu {
+    display: none;
   }
-  browserHistory.push(siteName)
-  historyIndex = browserHistory.length - 1
+}
+
+/* Fingerprint Sensor */
+.fingerprint-sensor {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  margin-top: 60px;
+  cursor: pointer;
+  animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.5s backwards;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fingerprint-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px);
+  border: 2px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fingerprintPulse 2s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.fingerprint-icon svg {
+  color: var(--text-primary);
+  opacity: 0.8;
+}
+
+.fingerprint-icon:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.2);
+  animation: none;
+}
+
+.fingerprint-text {
+  font-size: 16px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+@keyframes fingerprintPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+    transform: scale(1.05);
+  }
+}
+/* Resize Handles */
+.resize-handle {
+  position: absolute;
+  background: transparent;
+  z-index: 10;
+}
+
+.resize-n {
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 5px;
+  cursor: n-resize;
+}
+
+.resize-s {
+  bottom: 0;
+  left: 10px;
+  right: 10px;
+  height: 5px;
+  cursor: s-resize;
+}
+
+.resize-e {
+  top: 10px;
+  right: 0;
+  bottom: 10px;
+  width: 5px;
+  cursor: e-resize;
+}
+
+.resize-w {
+  top: 10px;
+  left: 0;
+  bottom: 10px;
+  width: 5px;
+  cursor: w-resize;
+}
+
+.resize-ne {
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  cursor: ne-resize;
+}
+
+.resize-nw {
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nw-resize;
+}
+
+.resize-se {
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  cursor: se-resize;
+}
+
+.resize-sw {
+  bottom: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  cursor: sw-resize;
+}
+
+/* User Menu */
+.user-menu {
+  position: absolute;
+  top: 70px;
+  left: 20px;
+  width: 280px;
+  background: var(--frost-bg);
+  backdrop-filter: blur(50px) saturate(1.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  z-index: 200;
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-menu.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+.user-menu-content {
+  padding: 20px;
+}
+
+.user-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.user-menu-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-purple), var(--secondary-pink));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-menu-info {
+  flex: 1;
+}
+
+.user-menu-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.user-menu-status {
+  font-size: 12px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.user-menu-status:hover {
+  color: white;
+}
+
+.user-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  width: 100%;
+}
+
+.user-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.user-menu-btn.shutdown-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+/* Settings Button */
+.settings-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.reset-btn {
+  padding: 8px 16px;
+  background: rgba(239, 68, 68, 0.6);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reset-btn:hover {
+  background: rgba(239, 68, 68, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
+}
+
+/* Mobile Notifications */
+@media (max-width: 768px) {
+  .notifications-container {
+    top: 70px;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 350px;
+  }
   
-  // Mettre à jour l'URL
-  const urlBar = document.getElementById('urlBar')
-  const urls = {
-    google: 'https://www.google.com',
-    youtube: 'https://www.youtube.com',
-    github: 'https://github.com/SillyFlisy/Archiware',
-    stackoverflow: 'https://stackoverflow.com'
+  .notification {
+    transform: translateY(-100px) scale(0.9);
   }
-  urlBar.value = urls[siteName]
-}
-
-function goBack() {
-  if (historyIndex > 0) {
-    historyIndex--
-    loadSite(browserHistory[historyIndex])
+  
+  .notification.show {
+    transform: translateY(0) scale(1);
   }
-}
-
-function goForward() {
-  if (historyIndex < browserHistory.length - 1) {
-    historyIndex++
-    loadSite(browserHistory[historyIndex])
+  
+  .right-island {
+    transition: all 0.3s ease;
+  }
+  
+  .right-island.hidden {
+    opacity: 0;
+    transform: translateX(100px);
   }
 }
 
-function refreshPage() {
-  loadSite(currentSite)
+/* Switch Account Text */
+.switch-account-btn {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  text-align: center;
 }
 
-// Navigation avec Entrée
-const urlBar = document.getElementById('urlBar')
-if (urlBar) {
-  urlBar.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      navigateToUrl()
-    }
-  })
+.switch-account-btn:hover {
+  color: var(--text-primary);
 }
 
-// Prevent context menu on long press (mobile)
-document.addEventListener('contextmenu', (e) => {
-  if (isMobile) {
-    e.preventDefault()
-  }
-})
+/* User Selection */
+.user-selection {
+  margin-top: 60px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-// Enhanced mobile fingerprint unlock
-if (isMobile) {
-  const fingerprintSensor = document.getElementById('fingerprintSensor')
-  if (fingerprintSensor) {
-    fingerprintSensor.addEventListener('touchstart', (e) => {
-      e.preventDefault()
-      if (isLocked) {
-        unlockDevice()
-      }
-    }, { passive: false })
+.user-selection.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.user-list {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px);
+  border: 2px solid var(--glass-border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 120px;
+}
+
+.user-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.user-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-purple), var(--secondary-pink));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.add-user-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(30px);
+  border: 2px dashed var(--glass-border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 120px;
+}
+
+.add-user-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-4px);
+}
+
+.add-user-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.add-user-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Fingerprint to Dock Animation */
+.fingerprint-unlock {
+  animation: fingerprintToDock 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fingerprintToDock {
+  0% {
+    transform: scale(1);
+    border-radius: 50%;
   }
+  50% {
+    transform: scale(0.8);
+    border-radius: 24px;
+  }
+  100% {
+    transform: scale(1) translateY(calc(100vh - 150px));
+    border-radius: 24px;
+    width: 300px;
+    height: 80px;
+  }
+}
+
+/* Window Controls Fix */
+.window-btn.minimize-btn:hover {
+  background: rgba(255, 193, 7, 0.8);
+}
+
+.window-btn.maximize-btn:hover {
+  background: rgba(40, 167, 69, 0.8);
+}
+
+/* Improved Window Dragging */
+.window.dragging {
+  user-select: none;
+  pointer-events: none;
+}
+
+.window.dragging * {
+  pointer-events: none;
+}
+
+.window-header {
+  user-select: none;
+}
+
+/* Button Customization */
+.custom-button-group {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+}
+
+.button-custom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.button-custom-row label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  min-width: 50px;
+}
+
+.mini-select {
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  min-width: 80px;
+}
+
+.color-input {
+  width: 30px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+}
+
+.content-input {
+  width: 40px;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Simplisme Style */
+.window.simplisme .window-btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+}
+
+.window.simplisme .close-btn {
+  background: #ff5f57;
+}
+
+.window.simplisme .maximize-btn {
+  background: #28ca42;
+}
+
+.window.simplisme .minimize-btn {
+  background: #ffbd2e;
+}
+
+.window.simplisme .window-btn svg {
+  display: none;
+}
+
+/* Custom Wallpaper */
+.custom-wallpaper {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
 }
