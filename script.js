@@ -1379,17 +1379,9 @@ function updateBrightness(value) {
     document.body.appendChild(overlay)
   }
   
-  if (value <= 10) {
-    // Assombrir l'écran
-    const opacity = (10 - value) / 10 * 0.8
-    overlay.style.background = `rgba(0, 0, 0, ${opacity})`
-  } else if (value >= 90) {
-    // Éclaircir l'écran
-    const opacity = (value - 90) / 10 * 0.6
-    overlay.style.background = `rgba(255, 255, 255, ${opacity})`
-  } else {
-    overlay.style.background = 'transparent'
-  }
+  // Plus la valeur est basse, plus l'overlay noir est opaque
+  const opacity = (100 - value) / 100 * 0.9
+  overlay.style.background = `rgba(0, 0, 0, ${opacity})`
 }
 
 function updateControlCenter() {
