@@ -151,9 +151,14 @@ const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/
 // Événements lockscreen
 lockscreenContent.addEventListener("click", (e) => {
   if (isLocked) {
+    const userSelection = document.getElementById('userSelection')
+    
     if (isMobile) {
       // Sur mobile : déverrouillage direct
       unlockDevice()
+    } else if (userSelection && userSelection.style.display === 'block') {
+      // Ne rien faire si on est sur l'écran de sélection d'utilisateur
+      return
     } else if (!codeEntry.classList.contains("visible")) {
       // Sur desktop : afficher le champ de saisie
       timeDisplay.classList.add("moved-up")
@@ -883,10 +888,14 @@ function disconnectUser() {
   const timeDisplay = document.getElementById('timeDisplay')
   const codeEntry = document.getElementById('codeEntry')
   const codeInput = document.getElementById('codeInput')
+  const userSelection = document.getElementById('userSelection')
   
   if (timeDisplay) timeDisplay.classList.remove('moved-up')
   if (codeEntry) codeEntry.classList.remove('visible')
   if (codeInput) codeInput.value = ''
+  
+  // Mettre à jour les informations utilisateur dans l'écran de sélection
+  updateUserSelectionInfo()
   
   // Animation de transition vers le lockscreen
   desktop.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
@@ -899,7 +908,60 @@ function disconnectUser() {
     lockscreen.style.opacity = '1'
     lockscreen.style.transform = 'scale(1)'
     lockscreen.classList.add('active')
+    
+    // Afficher l'écran de sélection d'utilisateur au lieu du code
+    if (userSelection) {
+      userSelection.style.display = 'block'
+      setTimeout(() => {
+        userSelection.classList.add('visible')
+      }, 100)
+    }
   }, 800)
+}
+
+function updateUserSelectionInfo() {
+  const savedUsername = localStorage.getItem('archiware_username') || 'zetsukae'
+  const savedProfile = localStorage.getItem('archiware_profile')
+  
+  const lockUserName = document.getElementById('lockUserName')
+  const lockUserAvatarText = document.getElementById('lockUserAvatarText')
+  const lockUserProfileImage = document.getElementById('lockUserProfileImage')
+  
+  if (lockUserName) lockUserName.textContent = savedUsername
+  if (lockUserAvatarText) lockUserAvatarText.textContent = savedUsername.charAt(0).toUpperCase()
+  
+  if (savedProfile && lockUserProfileImage) {
+    lockUserProfileImage.src = savedProfile
+    lockUserProfileImage.style.display = 'block'
+    lockUserAvatarText.style.display = 'none'
+  } else {
+    if (lockUserProfileImage) lockUserProfileImage.style.display = 'none'
+    if (lockUserAvatarText) lockUserAvatarText.style.display = 'block'
+  }
+}
+
+function selectUser() {
+  const userSelection = document.getElementById('userSelection')
+  const timeDisplay = document.getElementById('timeDisplay')
+  const codeEntry = document.getElementById('codeEntry')
+  const codeInput = document.getElementById('codeInput')
+  
+  // Masquer l'écran de sélection
+  if (userSelection) {
+    userSelection.classList.remove('visible')
+    setTimeout(() => {
+      userSelection.style.display = 'none'
+    }, 400)
+  }
+  
+  // Afficher l'écran de saisie du code
+  if (timeDisplay) timeDisplay.classList.add('moved-up')
+  if (codeEntry) {
+    setTimeout(() => {
+      codeEntry.classList.add('visible')
+      if (codeInput) codeInput.focus()
+    }, 400)
+  }
 }
 
 function shutdownSystem() {
