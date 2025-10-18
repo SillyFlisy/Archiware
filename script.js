@@ -576,7 +576,6 @@ function applyCustomButtonStyles(window) {
     if (btn) {
       btn.style.width = size + 'px'
       btn.style.height = size + 'px'
-      btn.style.fontSize = Math.max(10, size * 0.4) + 'px'
     }
   })
   
