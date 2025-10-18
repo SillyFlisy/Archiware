@@ -752,7 +752,10 @@ if (!notificationsContainer) {
 
 // Enhanced Notification System with Queue
 function showNotification(message) {
-  notificationQueue.push(message)
+  // Vérifier si la notification existe déjà dans la file d'attente
+  if (!notificationQueue.includes(message)) {
+    notificationQueue.push(message)
+  }
   processNotificationQueue()
 }
 
