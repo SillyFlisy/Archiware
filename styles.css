@@ -2144,103 +2144,75 @@ body {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.control-section {
-  margin-bottom: 20px;
-}
-
-.control-section h4 {
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.control-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.control-item {
-  display: flex;
-  align-items: center;
+.control-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.control-card {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
 }
 
-.control-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+.control-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(1.02);
 }
 
-.control-icon {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+.control-card.active {
+  background: rgba(0, 122, 255, 0.3);
+  border-color: rgba(0, 122, 255, 0.5);
+}
+
+.control-card-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-primary);
+  margin-bottom: 12px;
 }
 
-.control-info {
-  flex: 1;
+.control-card.active .control-card-icon {
+  background: rgba(255, 255, 255, 0.25);
 }
 
-.control-title {
+.control-card-title {
   color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 2px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
-.control-subtitle {
+.control-card-subtitle {
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 400;
 }
 
-.control-toggle {
-  width: 40px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  position: relative;
-  transition: all 0.3s ease;
+.control-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.control-toggle.active {
-  background: rgba(255, 255, 255, 0.4);
-}
-
-.control-toggle::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  background: white;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-}
-
-.control-toggle.active::after {
-  transform: translateX(20px);
-}
-
-.control-slider-item {
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  margin-bottom: 8px;
+.control-slider-card {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
 }
 
 .control-slider-header {
