@@ -791,7 +791,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (brightnessSlider && brightnessValue) {
     brightnessSlider.addEventListener('input', (e) => {
-      brightnessValue.textContent = e.target.value + '%'
+      const value = e.target.value
+      brightnessValue.textContent = value + '%'
+      updateBrightness(value)
     })
   }
 })
@@ -1338,11 +1340,9 @@ function toggleWifi() {
   if (wifiEnabled) {
     status.textContent = 'Connecté'
     card.classList.add('active')
-    showNotification('Wi-Fi activé')
   } else {
     status.textContent = 'Désactivé'
     card.classList.remove('active')
-    showNotification('Wi-Fi désactivé')
   }
 }
 
@@ -1354,11 +1354,41 @@ function toggleBluetooth() {
   if (bluetoothEnabled) {
     status.textContent = 'Connecté'
     card.classList.add('active')
-    showNotification('Bluetooth activé')
   } else {
     status.textContent = 'Désactivé'
     card.classList.remove('active')
-    showNotification('Bluetooth désactivé')
+  }
+}
+
+function updateBrightness(value) {
+  let overlay = document.getElementById('brightnessOverlay')
+  
+  if (!overlay) {
+    overlay = document.createElement('div')
+    overlay.id = 'brightnessOverlay'
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9998;
+      transition: all 0.3s ease;
+    `
+    document.body.appendChild(overlay)
+  }
+  
+  if (value <= 10) {
+    // Assombrir l'écran
+    const opacity = (10 - value) / 10 * 0.8
+    overlay.style.background = `rgba(0, 0, 0, ${opacity})`
+  } else if (value >= 90) {
+    // Éclaircir l'écran
+    const opacity = (value - 90) / 10 * 0.6
+    overlay.style.background = `rgba(255, 255, 255, ${opacity})`
+  } else {
+    overlay.style.background = 'transparent'
   }
 }
 
