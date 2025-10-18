@@ -182,6 +182,7 @@ function unlockDevice() {
   const lockscreen = document.getElementById("lockscreen")
   const desktop = document.getElementById("desktop")
   const fingerprintSensor = document.getElementById("fingerprintSensor")
+  const userSelection = document.getElementById('userSelection')
 
   isLocked = false
 
@@ -209,11 +210,21 @@ function unlockDevice() {
   setTimeout(() => {
     lockscreen.classList.remove("active")
     lockscreen.style.display = "none"
+    
+    // Réinitialiser complètement le desktop
+    desktop.style.display = 'block'
+    desktop.style.opacity = '1'
+    desktop.style.transform = 'scale(1)'
     desktop.classList.add("active")
 
+    // Réinitialiser tous les éléments du lockscreen
     timeDisplay.classList.remove("moved-up")
     codeEntry.classList.remove("visible")
     if (codeInput) codeInput.value = ""
+    if (userSelection) {
+      userSelection.classList.remove('visible')
+      userSelection.style.display = 'none'
+    }
   }, 800)
 }
 
@@ -884,32 +895,39 @@ function disconnectUser() {
     window.style.display = 'none'
   })
   
-  // Réinitialiser les champs de saisie avant la transition
+  // Réinitialiser complètement l'état du lockscreen
   const timeDisplay = document.getElementById('timeDisplay')
   const codeEntry = document.getElementById('codeEntry')
   const codeInput = document.getElementById('codeInput')
   const userSelection = document.getElementById('userSelection')
   
+  // S'assurer que tous les éléments sont dans leur état initial
   if (timeDisplay) timeDisplay.classList.remove('moved-up')
   if (codeEntry) codeEntry.classList.remove('visible')
   if (codeInput) codeInput.value = ''
+  if (userSelection) {
+    userSelection.classList.remove('visible')
+    userSelection.style.display = 'none'
+  }
   
-  // Mettre à jour les informations utilisateur dans l'écran de sélection
+  // Mettre à jour les informations utilisateur
   updateUserSelectionInfo()
   
-  // Animation de transition vers le lockscreen
-  desktop.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
+  // Réinitialiser les styles du desktop
   desktop.style.opacity = '0'
   desktop.style.transform = 'scale(1.05)'
   
   setTimeout(() => {
     desktop.classList.remove('active')
+    desktop.style.display = 'none'
+    
+    // Réinitialiser le lockscreen
     lockscreen.style.display = 'block'
     lockscreen.style.opacity = '1'
     lockscreen.style.transform = 'scale(1)'
     lockscreen.classList.add('active')
     
-    // Afficher l'écran de sélection d'utilisateur au lieu du code
+    // Afficher l'écran de sélection d'utilisateur
     if (userSelection) {
       userSelection.style.display = 'block'
       setTimeout(() => {
