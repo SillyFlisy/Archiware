@@ -22,6 +22,85 @@
         </div>
     </div>
 
+    <!-- BIOS/UEFI Screen -->
+    <div class="bios-screen" id="biosScreen" style="display: none;">
+        <div class="bios-content">
+            <div class="bios-header">
+                <div class="bios-title">ArchiwareOS UEFI Setup Utility</div>
+                <div class="bios-version">Version 2.1.0 - Build 2024.10</div>
+            </div>
+            
+            <div class="bios-main">
+                <div class="bios-menu">
+                    <div class="bios-tab active" data-tab="main">Main</div>
+                    <div class="bios-tab" data-tab="advanced">Advanced</div>
+                    <div class="bios-tab" data-tab="security">Security</div>
+                    <div class="bios-tab" data-tab="boot">Boot</div>
+                    <div class="bios-tab" data-tab="exit">Exit</div>
+                </div>
+                
+                <div class="bios-panel">
+                    <div class="bios-tab-content" id="main">
+                        <div class="bios-item">
+                            <span class="bios-label">System Information</span>
+                        </div>
+                        <div class="bios-item">
+                            <span class="bios-label">  BIOS Version:</span>
+                            <span class="bios-value">ArchiwareOS UEFI v2.1.0</span>
+                        </div>
+                        <div class="bios-item">
+                            <span class="bios-label">  System Date:</span>
+                            <span class="bios-value" id="biosDate">18/10/2024</span>
+                        </div>
+                        <div class="bios-item">
+                            <span class="bios-label">  System Time:</span>
+                            <span class="bios-value" id="biosTime">10:25:30</span>
+                        </div>
+                        <div class="bios-item">
+                            <span class="bios-label">  Total Memory:</span>
+                            <span class="bios-value">8192 MB</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bios-tab-content" id="boot" style="display: none;">
+                        <div class="bios-item">
+                            <span class="bios-label">Boot Priority Order</span>
+                        </div>
+                        <div class="bios-item selectable">
+                            <span class="bios-label">  1. ArchiwareOS (SSD)</span>
+                        </div>
+                        <div class="bios-item selectable">
+                            <span class="bios-label">  2. USB Device</span>
+                        </div>
+                        <div class="bios-item selectable">
+                            <span class="bios-label">  3. Network Boot</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bios-tab-content" id="exit" style="display: none;">
+                        <div class="bios-item selectable" onclick="exitBios()">
+                            <span class="bios-label">Exit Setup</span>
+                        </div>
+                        <div class="bios-item selectable" onclick="resetBios()">
+                            <span class="bios-label">Load Setup Defaults</span>
+                        </div>
+                        <div class="bios-item selectable" onclick="exitBios()">
+                            <span class="bios-label">Save & Exit</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bios-footer">
+                <div class="bios-help">
+                    <span>F2: Setup</span>
+                    <span>F10: Save & Exit</span>
+                    <span>ESC: Exit</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Lockscreen -->
     <div id="lockscreen" class="lockscreen active">
         <div class="liquid-bg"></div>
