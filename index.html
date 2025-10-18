@@ -210,6 +210,71 @@
                     </div>
 
                     <div class="settings-section">
+                        <h3 class="settings-title">Boutons de fenêtre</h3>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Style des boutons</div>
+                                <div class="setting-desc">Choisir le style des boutons de contrôle</div>
+                            </div>
+                            <select id="buttonStyleSelect" class="select-input">
+                                <option value="default">Par défaut</option>
+                                <option value="simplisme">Simplisme (macOS)</option>
+                                <option value="custom">Personnalisé</option>
+                            </select>
+                        </div>
+                        
+                        <div id="customButtonSettings" style="display: none;">
+                            <div class="custom-button-group">
+                                <h4 style="color: var(--text-primary); margin: 16px 0 12px 0; font-size: 14px;">Bouton Fermer</h4>
+                                <div class="button-custom-row">
+                                    <label>Forme:</label>
+                                    <select id="closeShape" class="mini-select">
+                                        <option value="circle">Cercle</option>
+                                        <option value="square">Carré</option>
+                                        <option value="rounded">Arrondi</option>
+                                    </select>
+                                    <label>Couleur:</label>
+                                    <input type="color" id="closeColor" value="#ef4444" class="color-input">
+                                    <label>Contenu:</label>
+                                    <input type="text" id="closeContent" placeholder="×" maxlength="3" class="content-input">
+                                </div>
+                            </div>
+                            
+                            <div class="custom-button-group">
+                                <h4 style="color: var(--text-primary); margin: 16px 0 12px 0; font-size: 14px;">Bouton Maximiser</h4>
+                                <div class="button-custom-row">
+                                    <label>Forme:</label>
+                                    <select id="maxShape" class="mini-select">
+                                        <option value="circle">Cercle</option>
+                                        <option value="square">Carré</option>
+                                        <option value="rounded">Arrondi</option>
+                                    </select>
+                                    <label>Couleur:</label>
+                                    <input type="color" id="maxColor" value="#22c55e" class="color-input">
+                                    <label>Contenu:</label>
+                                    <input type="text" id="maxContent" placeholder="□" maxlength="3" class="content-input">
+                                </div>
+                            </div>
+                            
+                            <div class="custom-button-group">
+                                <h4 style="color: var(--text-primary); margin: 16px 0 12px 0; font-size: 14px;">Bouton Minimiser</h4>
+                                <div class="button-custom-row">
+                                    <label>Forme:</label>
+                                    <select id="minShape" class="mini-select">
+                                        <option value="circle">Cercle</option>
+                                        <option value="square">Carré</option>
+                                        <option value="rounded">Arrondi</option>
+                                    </select>
+                                    <label>Couleur:</label>
+                                    <input type="color" id="minColor" value="#fbbf24" class="color-input">
+                                    <label>Contenu:</label>
+                                    <input type="text" id="minContent" placeholder="−" maxlength="3" class="content-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
                         <h3 class="settings-title">Personnalisation</h3>
                         <div class="setting-row">
                             <div class="setting-info">
