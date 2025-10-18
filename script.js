@@ -48,8 +48,7 @@ function startBootSequence() {
   const bootScreen = document.getElementById('bootScreen')
   
   // Play startup sound
-  const startupSound = new Audio('Assets/UI Sounds/startup.mp3')
-  startupSound.play().catch(e => console.log('Erreur audio:', e))
+  playSound('Assets/UI Sounds/startup.mp3')
   
   setTimeout(() => {
     if (!f2Pressed) {
@@ -289,8 +288,7 @@ function unlockDevice() {
   isLocked = false
 
   // Play login sound
-  const loginSound = new Audio('Assets/UI Sounds/login.mp3')
-  loginSound.play().catch(e => console.log('Erreur audio:', e))
+  playSound('Assets/UI Sounds/login.mp3')
 
   // Animation mobile : fingerprint vers dock
   if (isMobile && fingerprintSensor) {
@@ -785,7 +783,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (volumeSlider && volumeValue) {
     volumeSlider.addEventListener('input', (e) => {
-      volumeValue.textContent = e.target.value + '%'
+      const value = e.target.value
+      volumeValue.textContent = value + '%'
+      updateVolume(value)
     })
   }
   
@@ -1063,8 +1063,7 @@ function processNotificationQueue() {
   }
   
   // Play notification sound
-  const notificationSound = new Audio('Assets/UI Sounds/notification.mp3')
-  notificationSound.play().catch(e => console.log('Erreur audio:', e))
+  playSound('Assets/UI Sounds/notification.mp3')
 
   // Create notification element
   const notification = document.createElement('div')
@@ -1142,8 +1141,7 @@ function closeUserMenuOnClickOutside(e) {
 
 // System Functions
 function restartSystem() {
-  const restartSound = new Audio('Assets/UI Sounds/restart.mp3')
-  restartSound.play().catch(e => console.log('Erreur audio:', e))
+  playSound('Assets/UI Sounds/restart.mp3')
   
   showNotification('Redémarrage en cours...')
   localStorage.removeItem('archiware_has_booted')
@@ -1153,8 +1151,7 @@ function restartSystem() {
 }
 
 function disconnectUser() {
-  const disconnectSound = new Audio('Assets/UI Sounds/disconnect.mp3')
-  disconnectSound.play().catch(e => console.log('Erreur audio:', e))
+  playSound('Assets/UI Sounds/disconnect.mp3')
   
   hideUserMenu()
   
@@ -1264,8 +1261,7 @@ function selectUser() {
 }
 
 function shutdownSystem() {
-  const warningSound = new Audio('Assets/UI Sounds/warning.mp3')
-  warningSound.play().catch(e => console.log('Erreur audio:', e))
+  playSound('Assets/UI Sounds/warning.mp3')
   
   showNotification('Arrêt du système...')
   setTimeout(() => {
@@ -1299,6 +1295,7 @@ function showAppGrid() {
 let controlCenterVisible = false
 let wifiEnabled = true
 let bluetoothEnabled = false
+let currentVolume = 50
 
 function showControlCenter() {
   const controlCenter = document.getElementById('controlCenter')
@@ -1344,6 +1341,29 @@ function toggleWifi() {
     status.textContent = 'Désactivé'
     card.classList.remove('active')
   }
+  
+  // Mettre à jour l'état du navigateur
+  updateBrowserConnection()
+}
+
+function updateBrowserConnection() {
+  const fakeBrowser = document.querySelector('.fake-browser')
+  if (!wifiEnabled && fakeBrowser) {
+    fakeBrowser.innerHTML = `
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center; padding: 40px;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="margin-bottom: 20px; opacity: 0.5;">
+          <path d="M24.24 8L21.12 4.88C18.23 1.99 14.18 0 9.5 0S.77 1.99-2.12 4.88L1 8c2.15-2.15 5.02-3.34 8.5-3.34S17.85 5.85 20 8l4.24-4.24z"/>
+          <path d="M2 2L22 22" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <h3 style="margin-bottom: 10px; color: #333;">Aucune connexion Internet</h3>
+        <p style="color: #666; font-size: 14px;">Vérifiez votre connexion Wi-Fi et réessayez.</p>
+      </div>
+    `
+  } else if (wifiEnabled) {
+    // Restaurer le contenu normal du navigateur
+    const currentSite = document.querySelector('.fake-site[style*="block"]')?.id || 'google'
+    loadSite(currentSite)
+  }
 }
 
 function toggleBluetooth() {
@@ -1382,6 +1402,18 @@ function updateBrightness(value) {
   // Plus la valeur est basse, plus l'overlay noir est opaque
   const opacity = (100 - value) / 100 * 0.9
   overlay.style.background = `rgba(0, 0, 0, ${opacity})`
+}
+
+function updateVolume(value) {
+  currentVolume = value
+}
+
+function playSound(audioPath) {
+  if (currentVolume > 0) {
+    const audio = new Audio(audioPath)
+    audio.volume = currentVolume / 100
+    audio.play().catch(e => console.log('Erreur audio:', e))
+  }
 }
 
 function updateControlCenter() {
