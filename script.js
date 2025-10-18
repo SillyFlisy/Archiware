@@ -511,8 +511,84 @@ if (usernameInput) {
   })
 }
 
+// Button Customization
+function applyButtonStyle() {
+  const style = document.getElementById('buttonStyleSelect')?.value || 'default'
+  const windows = document.querySelectorAll('.window')
+  
+  windows.forEach(window => {
+    window.classList.remove('simplisme', 'custom')
+    
+    if (style === 'simplisme') {
+      window.classList.add('simplisme')
+    } else if (style === 'custom') {
+      window.classList.add('custom')
+      applyCustomButtonStyles(window)
+    }
+  })
+}
+
+function applyCustomButtonStyles(window) {
+  const closeBtn = window.querySelector('.close-btn')
+  const maxBtn = window.querySelector('.maximize-btn')
+  const minBtn = window.querySelector('.minimize-btn')
+  
+  if (closeBtn) {
+    const shape = document.getElementById('closeShape')?.value || 'rounded'
+    const color = document.getElementById('closeColor')?.value || '#ef4444'
+    const content = document.getElementById('closeContent')?.value || ''
+    
+    closeBtn.style.background = color
+    closeBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
+    if (content) closeBtn.innerHTML = content
+  }
+  
+  if (maxBtn) {
+    const shape = document.getElementById('maxShape')?.value || 'rounded'
+    const color = document.getElementById('maxColor')?.value || '#22c55e'
+    const content = document.getElementById('maxContent')?.value || ''
+    
+    maxBtn.style.background = color
+    maxBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
+    if (content) maxBtn.innerHTML = content
+  }
+  
+  if (minBtn) {
+    const shape = document.getElementById('minShape')?.value || 'rounded'
+    const color = document.getElementById('minColor')?.value || '#fbbf24'
+    const content = document.getElementById('minContent')?.value || ''
+    
+    minBtn.style.background = color
+    minBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
+    if (content) minBtn.innerHTML = content
+  }
+}
+
 // Settings Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+  // Button Style Selector
+  const buttonStyleSelect = document.getElementById('buttonStyleSelect')
+  const customButtonSettings = document.getElementById('customButtonSettings')
+  
+  if (buttonStyleSelect) {
+    buttonStyleSelect.addEventListener('change', (e) => {
+      const isCustom = e.target.value === 'custom'
+      if (customButtonSettings) {
+        customButtonSettings.style.display = isCustom ? 'block' : 'none'
+      }
+      applyButtonStyle()
+    })
+  }
+  
+  // Custom button controls
+  const customControls = ['closeShape', 'closeColor', 'closeContent', 'maxShape', 'maxColor', 'maxContent', 'minShape', 'minColor', 'minContent']
+  customControls.forEach(id => {
+    const element = document.getElementById(id)
+    if (element) {
+      element.addEventListener('input', applyButtonStyle)
+    }
+  })
+  
   const wallpaperInput = document.getElementById('wallpaperInput')
   if (wallpaperInput) {
     wallpaperInput.addEventListener('change', (e) => {
@@ -553,6 +629,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     })
   }
+  
+  // Apply initial button style
+  setTimeout(applyButtonStyle, 100)
 })
 
 if (timeFormatSelect) {
