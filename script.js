@@ -927,6 +927,12 @@ function disconnectUser() {
     lockscreen.style.transform = 'scale(1)'
     lockscreen.classList.add('active')
     
+    // S'assurer que timeDisplay est bien centré
+    if (timeDisplay) {
+      timeDisplay.classList.remove('moved-up')
+      timeDisplay.style.transform = 'translateY(0)'
+    }
+    
     // Afficher l'écran de sélection d'utilisateur
     if (userSelection) {
       userSelection.style.display = 'block'
