@@ -1114,7 +1114,7 @@ body {
 .fake-browser {
   width: 100%;
   height: 100%;
-  background: white;
+  background: #000;
   overflow-y: auto;
 }
 
@@ -1122,6 +1122,8 @@ body {
   width: 100%;
   height: 100%;
   padding: 20px;
+  background: #000;
+  color: white;
 }
 
 /* Google */
@@ -1149,11 +1151,13 @@ body {
 .fake-search {
   width: 400px;
   padding: 12px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid #333;
   border-radius: 24px;
   font-size: 16px;
   outline: none;
   user-select: text;
+  background: #111;
+  color: white;
 }
 
 .search-btn {
@@ -1201,9 +1205,11 @@ body {
 .yt-search {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #333;
   border-radius: 2px;
   user-select: text;
+  background: #111;
+  color: white;
 }
 
 .video-grid {
@@ -1290,9 +1296,11 @@ body {
 .so-search {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #333;
   border-radius: 3px;
   user-select: text;
+  background: #111;
+  color: white;
 }
 
 .question-item {
@@ -1608,8 +1616,8 @@ body {
 
 .reset-btn {
   padding: 8px 16px;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  border: none;
+  background: rgba(239, 68, 68, 0.6);
+  border: 1px solid rgba(239, 68, 68, 0.4);
   border-radius: 8px;
   color: white;
   font-size: 14px;
@@ -1619,9 +1627,9 @@ body {
 }
 
 .reset-btn:hover {
+  background: rgba(239, 68, 68, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
 }
 
 /* Mobile Notifications */
