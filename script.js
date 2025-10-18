@@ -777,7 +777,23 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
   
-
+  // Control Center Sliders
+  const volumeSlider = document.getElementById('volumeSlider')
+  const volumeValue = document.getElementById('volumeValue')
+  const brightnessSlider = document.getElementById('brightnessSlider')
+  const brightnessValue = document.getElementById('brightnessValue')
+  
+  if (volumeSlider && volumeValue) {
+    volumeSlider.addEventListener('input', (e) => {
+      volumeValue.textContent = e.target.value + '%'
+    })
+  }
+  
+  if (brightnessSlider && brightnessValue) {
+    brightnessSlider.addEventListener('input', (e) => {
+      brightnessValue.textContent = e.target.value + '%'
+    })
+  }
 })
 
 if (timeFormatSelect) {
