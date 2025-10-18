@@ -148,9 +148,14 @@ document.addEventListener('keydown', (e) => {
 // Start boot sequence on page load
 window.addEventListener('load', () => {
   loadSettings()
-  if (shouldShowBoot()) {
+  
+  // Vérifier si on revient du UEFI
+  const showBootAfterUefi = localStorage.getItem('show_boot_after_uefi')
+  
+  if (showBootAfterUefi || shouldShowBoot()) {
+    localStorage.removeItem('show_boot_after_uefi')
     startBootSequence()
-    markAsBooted()
+    if (!showBootAfterUefi) markAsBooted()
   } else {
     document.getElementById('bootScreen').style.display = 'none'
     isBooting = false
