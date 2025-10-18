@@ -674,10 +674,10 @@ body {
 }
 
 .window-btn {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: none;
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
   border-radius: 6px;
   color: var(--text-primary);
   cursor: pointer;
@@ -685,6 +685,11 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+}
+
+.window-header:hover .window-btn {
+  opacity: 1;
 }
 
 .window-btn:hover {
@@ -1911,6 +1916,19 @@ body {
   width: 16px;
   height: 16px;
   cursor: pointer;
+  accent-color: rgba(255, 255, 255, 0.8);
+}
+
+.button-custom-row label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  min-width: 50px;
+}
+
+#sizeValue {
+  color: var(--text-secondary);
+  font-size: 12px;
+  min-width: 30px;
 }
 
 /* Simplisme Style */
@@ -1957,6 +1975,308 @@ body {
 
 .window.custom .window-btn svg {
   display: none;
+}
+
+/* BIOS Screen */
+.bios-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  z-index: 10001;
+}
+
+.bios-content {
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.bios-header {
+  text-align: center;
+  border-bottom: 1px solid #00ff00;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.bios-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.bios-version {
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.bios-main {
+  flex: 1;
+  display: flex;
+}
+
+.bios-menu {
+  width: 150px;
+  border-right: 1px solid #00ff00;
+  padding-right: 20px;
+}
+
+.bios-tab {
+  padding: 8px 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  margin-bottom: 2px;
+}
+
+.bios-tab:hover {
+  background: #003300;
+}
+
+.bios-tab.active {
+  background: #00ff00;
+  color: #000;
+}
+
+.bios-panel {
+  flex: 1;
+  padding-left: 20px;
+}
+
+.bios-item {
+  padding: 4px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.bios-item.selectable {
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.bios-item.selectable:hover {
+  background: #003300;
+}
+
+.bios-label {
+  flex: 1;
+}
+
+.bios-value {
+  color: #ffff00;
+}
+
+.bios-footer {
+  border-top: 1px solid #00ff00;
+  padding-top: 10px;
+  text-align: center;
+}
+
+.bios-help {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  font-size: 12px;
+}
+
+/* Control Center */
+.control-center {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  width: 320px;
+  background: var(--frost-bg);
+  backdrop-filter: blur(50px) saturate(1.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  z-index: 200;
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.control-center.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+.control-center-content {
+  padding: 20px;
+}
+
+.control-center-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.control-center-header h3 {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.control-close-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.control-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.control-section {
+  margin-bottom: 20px;
+}
+
+.control-section h4 {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.control-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+}
+
+.control-info {
+  flex: 1;
+}
+
+.control-title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.control-subtitle {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.control-toggle {
+  width: 40px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.control-toggle.active {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.control-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.control-toggle.active::after {
+  transform: translateX(20px);
+}
+
+.control-slider-item {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.control-slider-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.control-slider-header span:last-child {
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.control-slider {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.control-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Custom Wallpaper */
