@@ -567,6 +567,19 @@ function applyCustomButtonStyles(window) {
   const maxBtn = window.querySelector('.maximize-btn')
   const minBtn = window.querySelector('.minimize-btn')
   
+  // Paramètres généraux
+  const size = document.getElementById('buttonSize')?.value || '24'
+  const showContent = document.getElementById('showContent')?.checked !== false
+  
+  const buttons = [closeBtn, maxBtn, minBtn]
+  buttons.forEach(btn => {
+    if (btn) {
+      btn.style.width = size + 'px'
+      btn.style.height = size + 'px'
+      btn.style.fontSize = Math.max(10, size * 0.4) + 'px'
+    }
+  })
+  
   if (closeBtn) {
     const shape = document.getElementById('closeShape')?.value || 'rounded'
     const color = document.getElementById('closeColor')?.value || '#ef4444'
@@ -574,7 +587,11 @@ function applyCustomButtonStyles(window) {
     
     closeBtn.style.background = color
     closeBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
-    if (content && content.trim()) closeBtn.innerHTML = content
+    if (showContent && content && content.trim()) {
+      closeBtn.innerHTML = content
+    } else if (!showContent) {
+      closeBtn.innerHTML = ''
+    }
   }
   
   if (maxBtn) {
@@ -584,7 +601,11 @@ function applyCustomButtonStyles(window) {
     
     maxBtn.style.background = color
     maxBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
-    if (content && content.trim()) maxBtn.innerHTML = content
+    if (showContent && content && content.trim()) {
+      maxBtn.innerHTML = content
+    } else if (!showContent) {
+      maxBtn.innerHTML = ''
+    }
   }
   
   if (minBtn) {
@@ -594,7 +615,11 @@ function applyCustomButtonStyles(window) {
     
     minBtn.style.background = color
     minBtn.style.borderRadius = shape === 'circle' ? '50%' : shape === 'square' ? '2px' : '6px'
-    if (content && content.trim()) minBtn.innerHTML = content
+    if (showContent && content && content.trim()) {
+      minBtn.innerHTML = content
+    } else if (!showContent) {
+      minBtn.innerHTML = ''
+    }
   }
 }
 
@@ -615,13 +640,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Custom button controls
-  const customControls = ['closeShape', 'closeColor', 'closeContent', 'maxShape', 'maxColor', 'maxContent', 'minShape', 'minColor', 'minContent']
+  const customControls = ['closeShape', 'closeColor', 'closeContent', 'maxShape', 'maxColor', 'maxContent', 'minShape', 'minColor', 'minContent', 'buttonSize', 'showContent']
   customControls.forEach(id => {
     const element = document.getElementById(id)
     if (element) {
       element.addEventListener('input', applyButtonStyle)
+      element.addEventListener('change', applyButtonStyle)
     }
   })
+  
+  // Update size display
+  const buttonSize = document.getElementById('buttonSize')
+  const sizeValue = document.getElementById('sizeValue')
+  if (buttonSize && sizeValue) {
+    buttonSize.addEventListener('input', (e) => {
+      sizeValue.textContent = e.target.value + 'px'
+    })
+  }
   
   const wallpaperInput = document.getElementById('wallpaperInput')
   if (wallpaperInput) {
