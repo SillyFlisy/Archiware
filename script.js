@@ -582,8 +582,15 @@ document.head.appendChild(windowAnimations)
 if (transparencySlider) {
   transparencySlider.addEventListener("input", (e) => {
     const value = e.target.value / 100
-    const opacity = 0.05 + value * 0.15
-    document.documentElement.style.setProperty("--glass-bg", `rgba(255, 255, 255, ${opacity})`)
+    const opacity = 0.05 + value * 0.4
+    const blur = value * 50
+    
+    document.documentElement.style.setProperty("--glass-bg", `rgba(0, 0, 0, ${opacity})`)
+    
+    // Appliquer le blur à toutes les fenêtres
+    document.querySelectorAll('.window, .dock-container, .island, .notification, .user-menu').forEach(element => {
+      element.style.backdropFilter = `blur(${blur}px) saturate(1.8)`
+    })
   })
 }
 
