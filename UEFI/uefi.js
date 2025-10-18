@@ -17,9 +17,14 @@ function updateUefiTime() {
 }
 
 function exitUefi() {
-  // Retourner à la page principale avec animation de boot
-  localStorage.setItem('show_boot_after_uefi', 'true')
-  window.location.href = '../index.html'
+  // Écran noir pendant 2 secondes
+  document.body.style.background = '#000'
+  document.querySelector('.uefi-screen').style.display = 'none'
+  
+  setTimeout(() => {
+    localStorage.setItem('show_boot_after_uefi', 'true')
+    window.location.href = '../index.html'
+  }, 2000)
 }
 
 function resetUefi() {
