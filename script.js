@@ -863,6 +863,24 @@ function restartSystem() {
   }, 2000)
 }
 
+function disconnectUser() {
+  const disconnectSound = new Audio('Assets/UI Sounds/disconnect.mp3')
+  disconnectSound.play().catch(e => console.log('Erreur audio:', e))
+  
+  hideUserMenu()
+  
+  const lockscreen = document.getElementById('lockscreen')
+  const desktop = document.getElementById('desktop')
+  
+  isLocked = true
+  
+  desktop.classList.remove('active')
+  lockscreen.style.display = 'block'
+  lockscreen.classList.add('active')
+  lockscreen.style.opacity = '1'
+  lockscreen.style.transform = 'scale(1)'
+}
+
 function shutdownSystem() {
   const warningSound = new Audio('Assets/UI Sounds/warning.mp3')
   warningSound.play().catch(e => console.log('Erreur audio:', e))
