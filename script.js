@@ -52,11 +52,18 @@ function startBootSequence() {
   startupSound.play().catch(e => console.log('Erreur audio:', e))
   
   setTimeout(() => {
-    bootScreen.classList.add('hidden')
-    setTimeout(() => {
-      bootScreen.style.display = 'none'
-      isBooting = false
-    }, 1000)
+    if (!f2Pressed) {
+      bootScreen.classList.add('hidden')
+      setTimeout(() => {
+        if (!f2Pressed) {
+          bootScreen.style.display = 'none'
+          isBooting = false
+          // Afficher le lockscreen
+          const lockscreen = document.getElementById('lockscreen')
+          lockscreen.classList.add('active')
+        }
+      }, 1000)
+    }
   }, 4000)
 }
 
@@ -133,18 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'F2' && isBooting) {
     e.preventDefault()
-    f2Pressed = true
-    showBios()
-  }
-  
-  // ESC to exit BIOS
-  if (e.key === 'Escape' && document.getElementById('biosScreen').style.display === 'block') {
-    exitBios()
-  }
-  
-  // F10 to save & exit BIOS
-  if (e.key === 'F10' && document.getElementById('biosScreen').style.display === 'block') {
-    exitBios()
+    // Rediriger vers le dossier UEFI
+    window.location.href = 'UEFI/index.html'
   }
 })
 
