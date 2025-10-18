@@ -1100,6 +1100,11 @@ function navigateToUrl() {
 }
 
 function loadSite(siteName) {
+  if (siteName === 'github') {
+    window.open('https://github.com/SillyFlisy/Archiware', '_blank')
+    return
+  }
+  
   document.querySelectorAll('.fake-site').forEach(site => {
     site.style.display = 'none'
   })
@@ -1119,7 +1124,7 @@ function loadSite(siteName) {
   const urls = {
     google: 'https://www.google.com',
     youtube: 'https://www.youtube.com',
-    github: 'https://www.github.com',
+    github: 'https://github.com/SillyFlisy/Archiware',
     stackoverflow: 'https://stackoverflow.com'
   }
   urlBar.value = urls[siteName]
