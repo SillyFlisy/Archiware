@@ -1333,15 +1333,15 @@ function closeControlCenterOnClickOutside(e) {
 function toggleWifi() {
   wifiEnabled = !wifiEnabled
   const status = document.getElementById('wifiStatus')
-  const toggle = document.getElementById('wifiToggle')
+  const card = document.getElementById('wifiCard')
   
   if (wifiEnabled) {
     status.textContent = 'Connecté'
-    toggle.classList.add('active')
+    card.classList.add('active')
     showNotification('Wi-Fi activé')
   } else {
     status.textContent = 'Désactivé'
-    toggle.classList.remove('active')
+    card.classList.remove('active')
     showNotification('Wi-Fi désactivé')
   }
 }
@@ -1349,15 +1349,15 @@ function toggleWifi() {
 function toggleBluetooth() {
   bluetoothEnabled = !bluetoothEnabled
   const status = document.getElementById('bluetoothStatus')
-  const toggle = document.getElementById('bluetoothToggle')
+  const card = document.getElementById('bluetoothCard')
   
   if (bluetoothEnabled) {
     status.textContent = 'Connecté'
-    toggle.classList.add('active')
+    card.classList.add('active')
     showNotification('Bluetooth activé')
   } else {
     status.textContent = 'Désactivé'
-    toggle.classList.remove('active')
+    card.classList.remove('active')
     showNotification('Bluetooth désactivé')
   }
 }
@@ -1365,15 +1365,15 @@ function toggleBluetooth() {
 function updateControlCenter() {
   // Update Wi-Fi
   const wifiStatus = document.getElementById('wifiStatus')
-  const wifiToggle = document.getElementById('wifiToggle')
+  const wifiCard = document.getElementById('wifiCard')
   wifiStatus.textContent = wifiEnabled ? 'Connecté' : 'Désactivé'
-  if (wifiEnabled) wifiToggle.classList.add('active')
+  if (wifiEnabled) wifiCard.classList.add('active')
   
   // Update Bluetooth
   const bluetoothStatus = document.getElementById('bluetoothStatus')
-  const bluetoothToggle = document.getElementById('bluetoothToggle')
+  const bluetoothCard = document.getElementById('bluetoothCard')
   bluetoothStatus.textContent = bluetoothEnabled ? 'Connecté' : 'Désactivé'
-  if (bluetoothEnabled) bluetoothToggle.classList.add('active')
+  if (bluetoothEnabled) bluetoothCard.classList.add('active')
 }
 
 // Dock icon bounce effect
