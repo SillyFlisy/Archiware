@@ -71,6 +71,83 @@ function markAsBooted() {
 
 
 
+// BIOS Functions
+let f2Pressed = false
+
+function showBios() {
+  const biosScreen = document.getElementById('biosScreen')
+  const bootScreen = document.getElementById('bootScreen')
+  
+  bootScreen.style.display = 'none'
+  biosScreen.style.display = 'block'
+  
+  updateBiosTime()
+  setInterval(updateBiosTime, 1000)
+}
+
+function exitBios() {
+  const biosScreen = document.getElementById('biosScreen')
+  biosScreen.style.display = 'none'
+  
+  // Continuer le boot normal
+  const lockscreen = document.getElementById('lockscreen')
+  lockscreen.classList.add('active')
+  isBooting = false
+}
+
+function resetBios() {
+  showNotification('Paramètres BIOS réinitialisés')
+}
+
+function updateBiosTime() {
+  const now = new Date()
+  const timeElement = document.getElementById('biosTime')
+  const dateElement = document.getElementById('biosDate')
+  
+  if (timeElement) {
+    timeElement.textContent = now.toLocaleTimeString('fr-FR')
+  }
+  if (dateElement) {
+    dateElement.textContent = now.toLocaleDateString('fr-FR')
+  }
+}
+
+// BIOS Tab Navigation
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.bios-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active class from all tabs
+      document.querySelectorAll('.bios-tab').forEach(t => t.classList.remove('active'))
+      document.querySelectorAll('.bios-tab-content').forEach(c => c.style.display = 'none')
+      
+      // Activate clicked tab
+      tab.classList.add('active')
+      const tabId = tab.getAttribute('data-tab')
+      const content = document.getElementById(tabId)
+      if (content) content.style.display = 'block'
+    })
+  })
+})
+
+// F2 Detection during boot
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F2' && isBooting) {
+    e.preventDefault()
+    f2Pressed = true
+    showBios()
+  }
+  
+  // ESC to exit BIOS
+  if (e.key === 'Escape' && document.getElementById('biosScreen').style.display === 'block') {
+    exitBios()
+  }
+  
+  // F10 to save & exit BIOS
+  if (e.key === 'F10' && document.getElementById('biosScreen').style.display === 'block') {
+    exitBios()
+  }
+})
+
 // Start boot sequence on page load
 window.addEventListener('load', () => {
   loadSettings()
@@ -1200,6 +1277,7 @@ function showAppGrid() {
 
 function showControlCenter() {
   showNotification("Centre de contrôle - Arrive bientôt !")
+  // TODO: Implémenter le centre de contrôle
 }
 
 // Dock icon bounce effect
