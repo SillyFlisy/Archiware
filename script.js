@@ -1347,20 +1347,22 @@ function toggleWifi() {
 }
 
 function updateBrowserConnection() {
-  const webview = document.getElementById('webview')
-  const browserFrame = document.getElementById('browserFrame')
-  
-  if (!wifiEnabled && webview) {
-    webview.innerHTML = `
-      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center; padding: 40px; background: #2a2a2a;">
-        <img src="Assets/icons/no-internet.png" width="64" height="64" style="margin-bottom: 20px; opacity: 0.5;" alt="No Internet">
-        <h3 style="margin-bottom: 10px; color: #fff;">Aucune connexion Internet</h3>
-        <p style="color: #ccc; font-size: 14px;">Vérifiez votre connexion Wi-Fi et réessayez.</p>
+  const fakeBrowser = document.querySelector('.fake-browser')
+  if (!wifiEnabled && fakeBrowser) {
+    fakeBrowser.innerHTML = `
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center; padding: 40px;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="margin-bottom: 20px; opacity: 0.5;">
+          <path d="M24.24 8L21.12 4.88C18.23 1.99 14.18 0 9.5 0S.77 1.99-2.12 4.88L1 8c2.15-2.15 5.02-3.34 8.5-3.34S17.85 5.85 20 8l4.24-4.24z"/>
+          <path d="M2 2L22 22" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <h3 style="margin-bottom: 10px; color: #333;">Aucune connexion Internet</h3>
+        <p style="color: #666; font-size: 14px;">Vérifiez votre connexion Wi-Fi et réessayez.</p>
       </div>
     `
-  } else if (wifiEnabled && webview) {
-    // Restaurer l'iframe
-    webview.innerHTML = `<iframe id="browserFrame" src="https://www.google.com" frameborder="0" style="width: 100%; height: 100%; border: none;"></iframe>`
+  } else if (wifiEnabled) {
+    // Restaurer le contenu normal du navigateur
+    const currentSite = document.querySelector('.fake-site[style*="block"]')?.id || 'google'
+    loadSite(currentSite)
   }
 }
 
@@ -1457,39 +1459,49 @@ let browserHistory = ['google']
 let historyIndex = 0
 
 function navigateToUrl() {
-  if (!wifiEnabled) return
-  
   const urlBar = document.getElementById('urlBar')
-  const browserFrame = document.getElementById('browserFrame')
-  let url = urlBar.value.trim()
+  let url = urlBar.value.trim().toLowerCase()
   
-  if (!url.startsWith('http')) {
-    url = 'https://' + url
-  }
-  
-  if (browserFrame) {
-    browserFrame.src = url
+  if (url.includes('youtube')) {
+    loadSite('youtube')
+  } else if (url.includes('github')) {
+    loadSite('github')
+  } else if (url.includes('stackoverflow')) {
+    loadSite('stackoverflow')
+  } else {
+    loadSite('google')
   }
 }
 
 function loadSite(siteName) {
-  if (!wifiEnabled) return
+  if (siteName === 'github') {
+    window.open('https://github.com/SillyFlisy/Archiware', '_blank')
+    return
+  }
   
-  const browserFrame = document.getElementById('browserFrame')
+  document.querySelectorAll('.fake-site').forEach(site => {
+    site.style.display = 'none'
+  })
+  
+  document.getElementById(siteName).style.display = 'block'
+  currentSite = siteName
+  
+  // Mettre à jour l'historique
+  if (historyIndex < browserHistory.length - 1) {
+    browserHistory = browserHistory.slice(0, historyIndex + 1)
+  }
+  browserHistory.push(siteName)
+  historyIndex = browserHistory.length - 1
+  
+  // Mettre à jour l'URL
   const urlBar = document.getElementById('urlBar')
-  
   const urls = {
     google: 'https://www.google.com',
     youtube: 'https://www.youtube.com',
     github: 'https://github.com/SillyFlisy/Archiware',
     stackoverflow: 'https://stackoverflow.com'
   }
-  
-  if (browserFrame && urls[siteName]) {
-    browserFrame.src = urls[siteName]
-    urlBar.value = urls[siteName]
-    currentSite = siteName
-  }
+  urlBar.value = urls[siteName]
 }
 
 function goBack() {
