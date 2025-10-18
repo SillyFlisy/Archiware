@@ -1549,9 +1549,7 @@ body {
 }
 
 .user-menu-status:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-  transform: scale(1.05);
+  color: white;
 }
 
 .user-menu-actions {
