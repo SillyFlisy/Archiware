@@ -1351,18 +1351,77 @@ function updateBrowserConnection() {
   if (!wifiEnabled && fakeBrowser) {
     fakeBrowser.innerHTML = `
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center; padding: 40px;">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="margin-bottom: 20px; opacity: 0.5;">
-          <path d="M24.24 8L21.12 4.88C18.23 1.99 14.18 0 9.5 0S.77 1.99-2.12 4.88L1 8c2.15-2.15 5.02-3.34 8.5-3.34S17.85 5.85 20 8l4.24-4.24z"/>
-          <path d="M2 2L22 22" stroke="currentColor" stroke-width="2"/>
-        </svg>
+        <img src="Assets/icons/no-internet.png" width="64" height="64" style="margin-bottom: 20px; opacity: 0.5;" alt="No Internet">
         <h3 style="margin-bottom: 10px; color: #333;">Aucune connexion Internet</h3>
         <p style="color: #666; font-size: 14px;">Vérifiez votre connexion Wi-Fi et réessayez.</p>
       </div>
     `
   } else if (wifiEnabled) {
     // Restaurer le contenu normal du navigateur
-    const currentSite = document.querySelector('.fake-site[style*="block"]')?.id || 'google'
-    loadSite(currentSite)
+    fakeBrowser.innerHTML = `
+      <div class="fake-site" id="google">
+        <div class="google-logo">Google</div>
+        <div class="search-container">
+          <input type="text" class="fake-search" placeholder="Rechercher sur Google">
+          <button class="search-btn">Rechercher</button>
+        </div>
+        <div class="quick-links">
+          <a href="#" onclick="loadSite('youtube')">YouTube</a>
+          <a href="#" onclick="loadSite('github')">GitHub</a>
+          <a href="#" onclick="loadSite('stackoverflow')">Stack Overflow</a>
+        </div>
+      </div>
+      
+      <div class="fake-site" id="youtube" style="display:none">
+        <div class="yt-header">
+          <div class="yt-logo">YouTube</div>
+          <input type="text" class="yt-search" placeholder="Rechercher">
+        </div>
+        <div class="yt-content">
+          <div class="video-grid">
+            <div class="video-card">
+              <div class="video-thumb"></div>
+              <div class="video-title">Tutoriel JavaScript</div>
+            </div>
+            <div class="video-card">
+              <div class="video-thumb"></div>
+              <div class="video-title">CSS Animations</div>
+            </div>
+            <div class="video-card">
+              <div class="video-thumb"></div>
+              <div class="video-title">Web Development</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="fake-site" id="stackoverflow" style="display:none">
+        <div class="so-header">
+          <div class="so-logo">Stack Overflow</div>
+          <input type="text" class="so-search" placeholder="Rechercher...">
+        </div>
+        <div class="so-content">
+          <div class="question-list">
+            <div class="question-item">
+              <div class="question-title">Comment créer une animation CSS ?</div>
+              <div class="question-tags">
+                <span class="tag">css</span>
+                <span class="tag">animation</span>
+              </div>
+            </div>
+            <div class="question-item">
+              <div class="question-title">JavaScript async/await expliqué</div>
+              <div class="question-tags">
+                <span class="tag">javascript</span>
+                <span class="tag">async</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+    // Afficher Google par défaut
+    document.getElementById('google').style.display = 'block'
   }
 }
 
