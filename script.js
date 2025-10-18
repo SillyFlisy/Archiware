@@ -874,11 +874,32 @@ function disconnectUser() {
   
   isLocked = true
   
-  desktop.classList.remove('active')
-  lockscreen.style.display = 'block'
-  lockscreen.classList.add('active')
-  lockscreen.style.opacity = '1'
-  lockscreen.style.transform = 'scale(1)'
+  // Fermer toutes les fenêtres ouvertes
+  document.querySelectorAll('.window').forEach(window => {
+    window.style.display = 'none'
+  })
+  
+  // Animation de transition vers le lockscreen
+  desktop.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
+  desktop.style.opacity = '0'
+  desktop.style.transform = 'scale(1.05)'
+  
+  setTimeout(() => {
+    desktop.classList.remove('active')
+    lockscreen.style.display = 'block'
+    lockscreen.classList.add('active')
+    lockscreen.style.opacity = '1'
+    lockscreen.style.transform = 'scale(1)'
+    
+    // Réinitialiser les champs de saisie
+    const timeDisplay = document.getElementById('timeDisplay')
+    const codeEntry = document.getElementById('codeEntry')
+    const codeInput = document.getElementById('codeInput')
+    
+    if (timeDisplay) timeDisplay.classList.remove('moved-up')
+    if (codeEntry) codeEntry.classList.remove('visible')
+    if (codeInput) codeInput.value = ''
+  }, 800)
 }
 
 function shutdownSystem() {
