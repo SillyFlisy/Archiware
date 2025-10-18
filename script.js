@@ -574,8 +574,8 @@ function applyCustomButtonStyles(window) {
   const buttons = [closeBtn, maxBtn, minBtn]
   buttons.forEach(btn => {
     if (btn) {
-      btn.style.width = size + 'px'
-      btn.style.height = size + 'px'
+      btn.style.setProperty('width', size + 'px', 'important')
+      btn.style.setProperty('height', size + 'px', 'important')
     }
   })
   
