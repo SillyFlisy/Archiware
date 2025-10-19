@@ -1,0 +1,176 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Courier New", monospace;
+  background: #000;
+  color: #00ff00;
+  overflow: hidden;
+  /* Hide cursor in BIOS/UEFI */
+  cursor: none;
+}
+
+.uefi-screen {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uefi-content {
+  width: 90%;
+  height: 90%;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #00ff00;
+  padding: 20px;
+}
+
+.uefi-header {
+  text-align: center;
+  border-bottom: 1px solid #00ff00;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.uefi-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.uefi-version {
+  font-size: 14px;
+  color: #ffff00;
+}
+
+.uefi-main {
+  flex: 1;
+  display: flex;
+  gap: 30px;
+}
+
+.uefi-menu {
+  width: 150px;
+  border-right: 1px solid #00ff00;
+  padding-right: 20px;
+}
+
+.uefi-tab {
+  padding: 10px 15px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  margin-bottom: 3px;
+  transition: all 0.2s;
+}
+
+.uefi-tab:hover {
+  background: #003300;
+  border-color: #00ff00;
+}
+
+.uefi-tab.active {
+  background: #00ff00;
+  color: #000;
+  font-weight: bold;
+}
+
+.uefi-panel {
+  flex: 1;
+  padding-left: 20px;
+}
+
+.uefi-tab-content {
+  height: 100%;
+}
+
+.uefi-item {
+  padding: 6px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.uefi-item.selectable {
+  cursor: pointer;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.uefi-item.selectable:hover,
+.uefi-item.selected {
+  background: #003300;
+  border-color: #00ff00;
+}
+
+.uefi-label {
+  flex: 1;
+}
+
+.uefi-value {
+  color: #ffff00;
+  font-weight: bold;
+}
+
+.uefi-footer {
+  border-top: 1px solid #00ff00;
+  padding-top: 15px;
+  text-align: center;
+}
+
+.uefi-help {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  font-size: 14px;
+}
+
+.uefi-help span {
+  padding: 5px 10px;
+  border: 1px solid #00ff00;
+  background: #001100;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .uefi-content {
+    width: 95%;
+    height: 95%;
+    padding: 15px;
+  }
+
+  .uefi-main {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .uefi-menu {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #00ff00;
+    padding-right: 0;
+    padding-bottom: 15px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .uefi-tab {
+    flex: 1;
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  .uefi-panel {
+    padding-left: 0;
+  }
+
+  .uefi-help {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
