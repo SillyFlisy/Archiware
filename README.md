@@ -1,2 +1,0 @@
-# Archiware
-supervised by Zetsukae
