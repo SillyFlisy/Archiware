@@ -105,7 +105,6 @@
     <div id="lockscreen" class="lockscreen active">
         <div class="liquid-bg"></div>
         
-        <!-- Redesigned lockscreen to show only time initially, input appears on click -->
         <div class="lockscreen-content" id="lockscreenContent">
             <div class="time-display" id="timeDisplay">
                 <div class="time" id="lockTime">10:15</div>
@@ -121,7 +120,7 @@
                     autocomplete="off"
                     spellcheck="false"
                 />
-                <div class="switch-account-btn" id="switchAccountBtn" onclick="showUserSelection()" style="display: none;">
+                <div class="switch-account-btn" id="switchAccountBtn" onclick="showUserSelection()">
                     Changer de compte
                 </div>
                 <div class="code-hint">Appuyez sur Entrée pour déverrouiller</div>
@@ -135,14 +134,12 @@
                 <div class="fingerprint-text">Touchez le capteur</div>
             </div>
             
-
-            
             <!-- Sélection d'utilisateur -->
             <div class="user-selection" id="userSelection" style="display: none;">
                 <div class="user-list">
                     <div class="user-card" onclick="selectUser()">
                         <div class="user-avatar">
-                            <img id="lockUserProfileImage" src="" alt="" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                            <img id="lockUserProfileImage" src="/placeholder.svg" alt="" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                             <span id="lockUserAvatarText">Z</span>
                         </div>
                         <div class="user-name" id="lockUserName">zetsukae</div>
@@ -168,7 +165,7 @@
         <div class="island left-island">
             <div class="user-profile" onclick="toggleUserMenu()">
                 <div class="avatar" id="userAvatar">
-                    <img id="profileImage" src="" alt="" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                    <img id="profileImage" src="/placeholder.svg" alt="" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                     <span id="avatarText">Z</span>
                 </div>
                 <span class="username" id="usernameDisplay">zetsukae</span>
@@ -188,7 +185,7 @@
             <div class="user-menu-content">
                 <div class="user-menu-header">
                     <div class="user-menu-avatar">
-                        <img id="menuProfileImage" src="" alt="" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                        <img id="menuProfileImage" src="/placeholder.svg" alt="" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                         <span id="menuAvatarText">Z</span>
                     </div>
                     <div class="user-menu-info">
@@ -282,7 +279,7 @@
                         <div class="control-slider-card">
                             <div class="control-slider-header">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1z"/>
+                                    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1z"/>
                                 </svg>
                                 <span>Luminosité</span>
                                 <span id="brightnessValue">100%</span>
