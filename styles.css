@@ -2032,3 +2032,338 @@ body {
   background-position: center !important;
   background-repeat: no-repeat !important;
 }
+
+/* macOS-style window animations */
+@keyframes macOSMinimize {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 100vh) scale(0.1);
+  }
+}
+
+@keyframes macOSMaximize {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes macOSClose {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(-45deg);
+  }
+}
+
+@keyframes macOSOpen {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.1) translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) translateY(0);
+  }
+}
+
+/* Apply macOS-style animations to windows */
+.window {
+  animation: macOSOpen 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+
+/* Update minimize animation to macOS style */
+@keyframes windowMinimize {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 100vh) scale(0.05) perspective(1200px) rotateY(90deg);
+  }
+}
+
+/* Update close animation to macOS style */
+@keyframes windowDisappear {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.1) rotate(-45deg);
+  }
+}
+
+/* Settings window glassmorphism with Ubuntu inspiration */
+#settingsWindow .window-content {
+  background: linear-gradient(135deg, rgba(25, 25, 32, 0.8) 0%, rgba(35, 35, 45, 0.75) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#settingsWindow .settings-section {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(20px) saturate(1.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+#settingsWindow .settings-title {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #88d7f7;
+}
+
+#settingsWindow .setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#settingsWindow .setting-row:last-child {
+  border-bottom: none;
+}
+
+#settingsWindow .setting-info {
+  flex: 1;
+}
+
+#settingsWindow .setting-name {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+#settingsWindow .setting-desc {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+}
+
+/* Toggle switch styling */
+#settingsWindow .toggle {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+#settingsWindow .toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+#settingsWindow .toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.15);
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 34px;
+  border: 1px solid rgba(2500, 200, 200, 0.2);
+}
+
+#settingsWindow .toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+#settingsWindow input:checked + .toggle-slider {
+  background-color: rgba(136, 215, 247, 0.7);
+  border-color: rgba(136, 215, 247, 0.8);
+}
+
+#settingsWindow input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}
+
+/* Slider styling */
+#settingsWindow .slider,
+#settingsWindow .select-input,
+#settingsWindow .text-input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+#settingsWindow .slider {
+  width: 150px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+#settingsWindow .slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, rgba(136, 215, 247, 0.9), rgba(100, 200, 255, 0.8));
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(136, 215, 247, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+#settingsWindow .slider:hover {
+  box-shadow: 0 0 12px rgba(136, 215, 247, 0.3);
+}
+
+#settingsWindow .select-input:hover,
+#settingsWindow .text-input:hover {
+  border-color: rgba(136, 215, 247, 0.4);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+#settingsWindow .select-input:focus,
+#settingsWindow .text-input:focus {
+  outline: none;
+  border-color: rgba(136, 215, 247, 0.7);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 12px rgba(136, 215, 247, 0.25);
+}
+
+#settingsWindow .select-input option {
+  background: rgba(35, 35, 45, 0.95);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Button styling in settings */
+#settingsWindow .settings-btn,
+#settingsWindow .reset-btn {
+  background: rgba(136, 215, 247, 0.15);
+  border: 1px solid rgba(136, 215, 247, 0.3);
+  color: rgba(136, 215, 247, 0.95);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+#settingsWindow .settings-btn:hover {
+  background: rgba(136, 215, 247, 0.25);
+  border-color: rgba(136, 215, 247, 0.5);
+  box-shadow: 0 4px 12px rgba(136, 215, 247, 0.2);
+}
+
+#settingsWindow .reset-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: rgba(239, 68, 68, 0.95);
+}
+
+#settingsWindow .reset-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+/* About section styling */
+#settingsWindow .about-info {
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid rgba(136, 215, 247, 0.5);
+  padding: 16px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+#settingsWindow .about-info p {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  margin: 8px 0;
+}
+
+#settingsWindow .about-info p:first-child {
+  color: rgba(136, 215, 247, 0.95);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Custom button groups styling */
+#settingsWindow .custom-button-group {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(136, 215, 247, 0.15);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(10px);
+}
+
+#settingsWindow .button-custom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+
+#settingsWindow .button-custom-row label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
+#settingsWindow .mini-select,
+#settingsWindow .color-input,
+#settingsWindow .content-input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+#settingsWindow .mini-select option {
+  background: rgba(35, 35, 45, 0.95);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+#settingsWindow .color-input {
+  width: 36px;
+  height: 28px;
+  cursor: pointer;
+  border: 2px solid rgba(136, 215, 247, 0.2);
+}
+
+#settingsWindow .color-input:hover {
+  border-color: rgba(136, 215, 247, 0.5);
+}
