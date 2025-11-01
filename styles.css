@@ -624,6 +624,7 @@ body {
   animation: windowAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 50;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform, opacity;
 }
 
 .window.dragging {
@@ -1821,7 +1822,7 @@ body {
   gap: 12px;
   padding: 20px;
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(30px);
+  backdrop-filter: blur(300px);
   border: 2px dashed var(--glass-border);
   border-radius: 20px;
   cursor: pointer;
@@ -2081,6 +2082,11 @@ body {
 /* Apply macOS-style animations to windows */
 .window {
   animation: macOSOpen 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
+.window.maximized {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Update minimize animation to macOS style */
@@ -2089,9 +2095,12 @@ body {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
+  50% {
+    opacity: 0.5;
+  }
   100% {
     opacity: 0;
-    transform: translate(-50%, 100vh) scale(0.05) perspective(1200px) rotateY(90deg);
+    transform: translate(-50%, calc(100vh - 40px)) scale(0.2);
   }
 }
 
@@ -2109,36 +2118,104 @@ body {
 
 /* Settings window glassmorphism with Ubuntu inspiration */
 #settingsWindow .window-content {
-  background: linear-gradient(135deg, rgba(25, 25, 32, 0.8) 0%, rgba(35, 35, 45, 0.75) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Settings sidebar - Ubuntu-style */
+#settingsWindow .settings-sidebar {
+  width: 180px;
+  background: rgba(0, 0, 0, 0.3);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+#settingsWindow .settings-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+#settingsWindow .settings-nav-item {
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+#settingsWindow .settings-nav-item:hover {
+  background: rgba(136, 215, 247, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+#settingsWindow .settings-nav-item.active {
+  background: rgba(136, 215, 247, 0.2);
+  border-left-color: #88d7f7;
+  color: #88d7f7;
+}
+
+/* Settings content area - Ubuntu glassmorphism */
+#settingsWindow .settings-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
 }
 
 #settingsWindow .settings-section {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  backdrop-filter: blur(20px) saturate(1.8);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(136, 215, 247, 0.15);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(15px) saturate(1.6);
+  display: none;
+}
+
+#settingsWindow .settings-section.active {
+  display: block;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 #settingsWindow .settings-title {
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 16px;
+  color: #88d7f7;
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #88d7f7;
+  border-bottom: 1px solid rgba(136, 215, 247, 0.2);
+  padding-bottom: 8px;
 }
 
 #settingsWindow .setting-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 #settingsWindow .setting-row:last-child {
@@ -2150,23 +2227,23 @@ body {
 }
 
 #settingsWindow .setting-name {
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 #settingsWindow .setting-desc {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
 }
 
-/* Toggle switch styling */
+/* Toggle and controls styling - optimized for performance */
 #settingsWindow .toggle {
   position: relative;
   display: inline-block;
-  width: 50px;
-  height: 28px;
+  width: 48px;
+  height: 26px;
 }
 
 #settingsWindow .toggle input {
@@ -2182,188 +2259,149 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.15);
-  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 34px;
-  border: 1px solid rgba(2500, 200, 200, 0.2);
+  background-color: rgba(255, 255, 255, 0.12);
+  transition: background-color 0.2s ease;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 #settingsWindow .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 22px;
-  width: 22px;
+  height: 20px;
+  width: 20px;
   left: 3px;
-  bottom: 2px;
+  top: 2px;
   background-color: white;
-  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s ease;
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 #settingsWindow input:checked + .toggle-slider {
-  background-color: rgba(136, 215, 247, 0.7);
-  border-color: rgba(136, 215, 247, 0.8);
+  background-color: rgba(136, 215, 247, 0.6);
 }
 
 #settingsWindow input:checked + .toggle-slider:before {
   transform: translateX(22px);
 }
 
-/* Slider styling */
 #settingsWindow .slider,
 #settingsWindow .select-input,
 #settingsWindow .text-input {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.9);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  transition: border-color 0.2s ease;
 }
 
 #settingsWindow .slider {
-  width: 150px;
+  width: 140px;
   height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
   cursor: pointer;
 }
 
 #settingsWindow .slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(136, 215, 247, 0.9), rgba(100, 200, 255, 0.8));
+  width: 14px;
+  height: 14px;
+  background: #88d7f7;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(136, 215, 247, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-#settingsWindow .slider:hover {
-  box-shadow: 0 0 12px rgba(136, 215, 247, 0.3);
-}
-
-#settingsWindow .select-input:hover,
-#settingsWindow .text-input:hover {
-  border-color: rgba(136, 215, 247, 0.4);
-  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 6px rgba(136, 215, 247, 0.4);
+  border: none;
 }
 
 #settingsWindow .select-input:focus,
 #settingsWindow .text-input:focus {
   outline: none;
-  border-color: rgba(136, 215, 247, 0.7);
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 12px rgba(136, 215, 247, 0.25);
+  border-color: rgba(136, 215, 247, 0.5);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-#settingsWindow .select-input option {
-  background: rgba(35, 35, 45, 0.95);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* Button styling in settings */
+/* Buttons styling */
 #settingsWindow .settings-btn,
 #settingsWindow .reset-btn {
   background: rgba(136, 215, 247, 0.15);
   border: 1px solid rgba(136, 215, 247, 0.3);
-  color: rgba(136, 215, 247, 0.95);
-  padding: 8px 16px;
-  border-radius: 6px;
+  color: #88d7f7;
+  padding: 6px 14px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 13px;
+  transition: all 0.15s ease;
+  font-size: 12px;
   font-weight: 500;
 }
 
 #settingsWindow .settings-btn:hover {
   background: rgba(136, 215, 247, 0.25);
-  border-color: rgba(136, 215, 247, 0.5);
-  box-shadow: 0 4px 12px rgba(136, 215, 247, 0.2);
+  box-shadow: 0 2px 8px rgba(136, 215, 247, 0.15);
 }
 
 #settingsWindow .reset-btn {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: rgba(239, 68, 68, 0.95);
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: rgba(239, 68, 68, 0.9);
 }
 
 #settingsWindow .reset-btn:hover {
-  background: rgba(239, 68, 68, 0.25);
-  border-color: rgba(239, 68, 68, 0.5);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.2);
 }
 
 /* About section styling */
 #settingsWindow .about-info {
-  background: rgba(255, 255, 255, 0.03);
-  border-left: 3px solid rgba(136, 215, 247, 0.5);
-  padding: 16px;
-  border-radius: 6px;
+  background: rgba(136, 215, 247, 0.08);
+  border-left: 2px solid #88d7f7;
+  padding: 12px;
+  border-radius: 5px;
   text-align: center;
 }
 
 #settingsWindow .about-info p {
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 13px;
-  margin: 8px 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  margin: 6px 0;
 }
 
 #settingsWindow .about-info p:first-child {
-  color: rgba(136, 215, 247, 0.95);
+  color: #88d7f7;
   font-weight: 600;
-  font-size: 14px;
 }
 
-/* Custom button groups styling */
-#settingsWindow .custom-button-group {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(136, 215, 247, 0.15);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  backdrop-filter: blur(10px);
-}
+/* Responsive settings layout */
+@media (max-width: 800px) {
+  #settingsWindow .window-content {
+    flex-direction: column;
+  }
 
-#settingsWindow .button-custom-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 8px 0;
-}
+  #settingsWindow .settings-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    height: auto;
+    overflow-x: auto;
+  }
 
-#settingsWindow .button-custom-row label {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
-}
+  #settingsWindow .settings-nav {
+    flex-direction: row;
+    padding: 8px;
+  }
 
-#settingsWindow .mini-select,
-#settingsWindow .color-input,
-#settingsWindow .content-input {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.9);
-  border-radius: 4px;
-  font-size: 12px;
-}
+  #settingsWindow .settings-nav-item {
+    padding: 8px 12px;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+  }
 
-#settingsWindow .mini-select option {
-  background: rgba(35, 35, 45, 0.95);
-  color: rgba(255, 255, 255, 0.9);
-}
+  #settingsWindow .settings-nav-item.active {
+    border-left: none;
+    border-bottom-color: #88d7f7;
+  }
 
-#settingsWindow .color-input {
-  width: 36px;
-  height: 28px;
-  cursor: pointer;
-  border: 2px solid rgba(136, 215, 247, 0.2);
-}
-
-#settingsWindow .color-input:hover {
-  border-color: rgba(136, 215, 247, 0.5);
+  #settingsWindow .settings-content {
+    padding: 16px;
+  }
 }
