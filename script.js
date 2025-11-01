@@ -879,6 +879,7 @@ function maximizeWindow(windowId) {
     const isMaximized = window.classList.contains("maximized")
 
     if (isMaximized) {
+      // Restore to previous size
       window.classList.remove("maximized")
       window.style.width = "700px"
       window.style.height = "500px"
@@ -886,15 +887,32 @@ function maximizeWindow(windowId) {
       window.style.top = "50%"
       window.style.transform = "translate(-50%, -50%)"
     } else {
+      // Maximize with margins (not fullscreen)
       window.classList.add("maximized")
-      window.style.width = "calc(100vw - 40px)"
-      window.style.height = "calc(100vh - 120px)"
-      window.style.left = "20px"
-      window.style.top = "20px"
+      window.style.width = "calc(100vw - 80px)"
+      window.style.height = "calc(100vh - 160px)"
+      window.style.left = "40px"
+      window.style.top = "60px"
       window.style.transform = "none"
     }
   }
 }
+
+document.querySelectorAll(".minimize-btn").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation()
+    const windowId = e.target.closest(".window").id
+    minimizeWindow(windowId)
+  })
+})
+
+document.querySelectorAll(".maximize-btn").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation()
+    const windowId = e.target.closest(".window").id
+    maximizeWindow(windowId)
+  })
+})
 
 // Simple window dragging
 document.querySelectorAll(".window").forEach((window) => {
