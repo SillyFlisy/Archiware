@@ -6,6 +6,8 @@ const notificationQueue = []
 let isNotificationShowing = false
 let userMenuVisible = false
 const minimizedWindows = new Set()
+const minimizedWindowsState = new Set()
+let windowStates = {} // Store window positions and states
 
 // Load saved settings
 function loadSettings() {
@@ -398,6 +400,11 @@ function focusWindow(window) {
   // Donner le focus à la fenêtre cliquée
   window.classList.add("focused")
   window.style.zIndex = ++windowZIndex
+
+  // Save the ID of the currently focused window
+  localStorage.setItem("archiware_last_focused_window", window.id)
+
+  saveWindowState(window.id) // Save state when focusing
 }
 
 // Auto-hide dock and islands when window overlaps
@@ -863,13 +870,14 @@ if (animationsToggle) {
 function minimizeWindow(windowId) {
   const window = document.getElementById(windowId)
   if (window) {
-    window.style.animation = "windowMinimize 0.3s cubic-bezier(0.4, 0, 1, 1) forwards"
-    minimizedWindows.add(windowId)
+    window.style.animation = "macOSMinimize 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards"
+    minimizedWindowsState.add(windowId)
+    saveWindowState(windowId)
 
     setTimeout(() => {
       window.style.display = "none"
       window.style.animation = ""
-    }, 300)
+    }, 400)
   }
 }
 
@@ -889,12 +897,23 @@ function maximizeWindow(windowId) {
     } else {
       // Maximize with margins (not fullscreen)
       window.classList.add("maximized")
-      window.style.width = "calc(100vw - 80px)"
-      window.style.height = "calc(100vh - 160px)"
       window.style.left = "40px"
       window.style.top = "60px"
+      window.style.width = "calc(100vw - 80px)"
+      window.style.height = "calc(100vh - 140px)"
       window.style.transform = "none"
     }
+    saveWindowState(windowId)
+  }
+}
+
+function restoreWindow(windowId) {
+  const window = document.getElementById(windowId)
+  if (window) {
+    minimizedWindowsState.delete(windowId)
+    window.style.display = "block"
+    window.style.animation = "macOSRestore 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards"
+    saveWindowState(windowId)
   }
 }
 
@@ -919,7 +938,6 @@ document.querySelectorAll(".window").forEach((window) => {
   const header = window.querySelector(".window-header")
   let isDragging = false
   let startX, startY, startLeft, startTop
-
   header.addEventListener("mousedown", (e) => {
     if (e.target.closest(".window-controls")) return
     isDragging = true
@@ -932,7 +950,6 @@ document.querySelectorAll(".window").forEach((window) => {
     focusWindow(window)
     e.preventDefault()
   })
-
   document.addEventListener("mousemove", (e) => {
     if (!isDragging) return
     const deltaX = e.clientX - startX
@@ -941,12 +958,13 @@ document.querySelectorAll(".window").forEach((window) => {
     window.style.top = startTop + deltaY + "px"
     checkWindowOverlap()
   })
-
   document.addEventListener("mouseup", () => {
-    isDragging = false
-    setTimeout(checkWindowOverlap, 100)
+    if (isDragging) {
+      isDragging = false
+      saveWindowState(window.id)
+      setTimeout(checkWindowOverlap, 100)
+    }
   })
-
   // Touch events for mobile
   header.addEventListener("touchstart", (e) => {
     if (e.target.closest(".window-controls")) return
@@ -961,7 +979,6 @@ document.querySelectorAll(".window").forEach((window) => {
     focusWindow(window)
     e.preventDefault()
   })
-
   document.addEventListener("touchmove", (e) => {
     if (!isDragging) return
     const touch = e.touches[0]
@@ -972,20 +989,17 @@ document.querySelectorAll(".window").forEach((window) => {
     checkWindowOverlap()
     e.preventDefault()
   })
-
   document.addEventListener("touchend", () => {
     isDragging = false
     setTimeout(checkWindowOverlap, 100)
   })
 })
-
 // Simple window resizing
 document.querySelectorAll(".window").forEach((window) => {
   const handles = window.querySelectorAll(".resize-handle")
   let isResizing = false
   let resizeType = ""
   let startX, startY, startWidth, startHeight, startLeft, startTop
-
   handles.forEach((handle) => {
     handle.addEventListener("mousedown", (e) => {
       isResizing = true
@@ -1001,18 +1015,14 @@ document.querySelectorAll(".window").forEach((window) => {
       e.stopPropagation()
     })
   })
-
   document.addEventListener("mousemove", (e) => {
     if (!isResizing) return
-
     const deltaX = e.clientX - startX
     const deltaY = e.clientY - startY
-
     let newWidth = startWidth
     let newHeight = startHeight
     let newLeft = startLeft
     let newTop = startTop
-
     if (resizeType.includes("e")) newWidth = startWidth + deltaX
     if (resizeType.includes("w")) {
       newWidth = startWidth - deltaX
@@ -1023,23 +1033,19 @@ document.querySelectorAll(".window").forEach((window) => {
       newHeight = startHeight - deltaY
       newTop = startTop + deltaY
     }
-
     newWidth = Math.max(300, newWidth)
     newHeight = Math.max(200, newHeight)
-
     window.style.width = newWidth + "px"
     window.style.height = newHeight + "px"
     window.style.left = newLeft + "px"
     window.style.top = newTop + "px"
     checkWindowOverlap()
   })
-
   document.addEventListener("mouseup", () => {
     isResizing = false
     setTimeout(checkWindowOverlap, 100)
   })
 })
-
 // Window controls
 document.querySelectorAll(".minimize-btn").forEach((btn) => {
   btn.addEventListener("click", (e) => {
@@ -1048,7 +1054,6 @@ document.querySelectorAll(".minimize-btn").forEach((btn) => {
     minimizeWindow(windowId)
   })
 })
-
 document.querySelectorAll(".maximize-btn").forEach((btn) => {
   btn.addEventListener("click", (e) => {
     e.stopPropagation()
@@ -1056,7 +1061,6 @@ document.querySelectorAll(".maximize-btn").forEach((btn) => {
     maximizeWindow(windowId)
   })
 })
-
 // Créer le conteneur de notifications
 let notificationsContainer = document.querySelector(".notifications-container")
 if (!notificationsContainer) {
@@ -1064,7 +1068,6 @@ if (!notificationsContainer) {
   notificationsContainer.className = "notifications-container"
   document.body.appendChild(notificationsContainer)
 }
-
 // Enhanced Notification System with Queue
 function showNotification(message) {
   // Vérifier si la notification existe déjà dans la file d'attente
@@ -1073,13 +1076,10 @@ function showNotification(message) {
   }
   processNotificationQueue()
 }
-
 function processNotificationQueue() {
   if (isNotificationShowing || notificationQueue.length === 0) return
-
   isNotificationShowing = true
   const message = notificationQueue.shift()
-
   // Hide right island on mobile when notification appears
   if (isMobile) {
     const rightIsland = document.querySelector(".right-island")
@@ -1087,10 +1087,8 @@ function processNotificationQueue() {
       rightIsland.classList.add("hidden")
     }
   }
-
   // Play notification sound
   playSound("Assets/UI Sounds/notification.mp3")
-
   // Create notification element
   const notification = document.createElement("div")
   notification.className = "notification"
@@ -1104,12 +1102,9 @@ function processNotificationQueue() {
       <div class="notification-text">${message}</div>
     </div>
   `
-
   notificationsContainer.appendChild(notification)
-
   // Show animation
   setTimeout(() => notification.classList.add("show"), 100)
-
   // Hide after 3 seconds
   setTimeout(() => {
     notification.classList.remove("show")
@@ -1118,7 +1113,6 @@ function processNotificationQueue() {
         notification.remove()
       }
       isNotificationShowing = false
-
       // Show right island again on mobile
       if (isMobile) {
         const rightIsland = document.querySelector(".right-island")
@@ -1126,18 +1120,15 @@ function processNotificationQueue() {
           rightIsland.classList.remove("hidden")
         }
       }
-
       // Process next notification in queue
       processNotificationQueue()
     }, 400)
   }, 3000)
 }
-
 // User Menu Functions
 function toggleUserMenu() {
   const userMenu = document.getElementById("userMenu")
   userMenuVisible = !userMenuVisible
-
   if (userMenuVisible) {
     userMenu.classList.add("show")
     // Close menu when clicking outside
@@ -1148,55 +1139,43 @@ function toggleUserMenu() {
     hideUserMenu()
   }
 }
-
 function hideUserMenu() {
   const userMenu = document.getElementById("userMenu")
   userMenu.classList.remove("show")
   userMenuVisible = false
   document.removeEventListener("click", closeUserMenuOnClickOutside)
 }
-
 function closeUserMenuOnClickOutside(e) {
   const userMenu = document.getElementById("userMenu")
   const userProfile = document.querySelector(".user-profile")
-
   if (!userMenu.contains(e.target) && !userProfile.contains(e.target)) {
     hideUserMenu()
   }
 }
-
 // System Functions
 function restartSystem() {
   playSound("Assets/UI Sounds/restart.mp3")
-
   showNotification("Redémarrage en cours...")
   localStorage.removeItem("archiware_has_booted")
   setTimeout(() => {
     location.reload()
   }, 2000)
 }
-
 function disconnectUser() {
   playSound("Assets/UI Sounds/disconnect.mp3")
-
   hideUserMenu()
-
   const lockscreen = document.getElementById("lockscreen")
   const desktop = document.getElementById("desktop")
-
   isLocked = true
-
   // Fermer toutes les fenêtres ouvertes
   document.querySelectorAll(".window").forEach((window) => {
     window.style.display = "none"
   })
-
   // Réinitialiser complètement l'état du lockscreen
   const timeDisplay = document.getElementById("timeDisplay")
   const codeEntry = document.getElementById("codeEntry")
   const codeInput = document.getElementById("codeInput")
   const userSelection = document.getElementById("userSelection")
-
   // S'assurer que tous les éléments sont dans leur état initial
   if (timeDisplay) timeDisplay.classList.remove("moved-up")
   if (codeEntry) codeEntry.classList.remove("visible")
@@ -1205,30 +1184,24 @@ function disconnectUser() {
     userSelection.classList.remove("visible")
     userSelection.style.display = "none"
   }
-
   // Mettre à jour les informations utilisateur
   updateUserSelectionInfo()
-
   // Réinitialiser les styles du desktop
   desktop.style.opacity = "0"
   desktop.style.transform = "scale(1.05)"
-
   setTimeout(() => {
     desktop.classList.remove("active")
     desktop.style.display = "none"
-
     // Réinitialiser le lockscreen
     lockscreen.style.display = "block"
     lockscreen.style.opacity = "1"
     lockscreen.style.transform = "scale(1)"
     lockscreen.classList.add("active")
-
     // S'assurer que timeDisplay est bien centré
     if (timeDisplay) {
       timeDisplay.classList.remove("moved-up")
       timeDisplay.style.transform = "translateY(0)"
     }
-
     // Afficher l'écran de sélection d'utilisateur
     if (userSelection) {
       userSelection.style.display = "block"
@@ -1238,18 +1211,14 @@ function disconnectUser() {
     }
   }, 800)
 }
-
 function updateUserSelectionInfo() {
   const savedUsername = localStorage.getItem("archiware_username") || "zetsukae"
   const savedProfile = localStorage.getItem("archiware_profile")
-
   const lockUserName = document.getElementById("lockUserName")
   const lockUserAvatarText = document.getElementById("lockUserAvatarText")
   const lockUserProfileImage = document.getElementById("lockUserProfileImage")
-
   if (lockUserName) lockUserName.textContent = savedUsername
   if (lockUserAvatarText) lockUserAvatarText.textContent = savedUsername.charAt(0).toUpperCase()
-
   if (savedProfile && lockUserProfileImage) {
     lockUserProfileImage.src = savedProfile
     lockUserProfileImage.style.display = "block"
@@ -1259,14 +1228,12 @@ function updateUserSelectionInfo() {
     if (lockUserAvatarText) lockUserAvatarText.style.display = "block"
   }
 }
-
 function selectUser() {
   const userSelection = document.getElementById("userSelection")
   const timeDisplay = document.getElementById("timeDisplay")
   const codeEntry = document.getElementById("codeEntry")
   const codeInput = document.getElementById("codeInput")
   const switchAccountBtn = document.getElementById("switchAccountBtn")
-
   // Masquer l'écran de sélection
   if (userSelection) {
     userSelection.classList.remove("visible")
@@ -1274,7 +1241,6 @@ function selectUser() {
       userSelection.style.display = "none"
     }, 400)
   }
-
   // Afficher l'écran de saisie du code
   if (timeDisplay) timeDisplay.classList.add("moved-up")
   if (codeEntry) {
@@ -1285,10 +1251,8 @@ function selectUser() {
     }, 400)
   }
 }
-
 function shutdownSystem() {
   playSound("Assets/UI Sounds/warning.mp3")
-
   showNotification("Arrêt du système...")
   setTimeout(() => {
     document.body.style.background = "black"
@@ -1296,38 +1260,30 @@ function shutdownSystem() {
       '<div style="color: white; text-align: center; padding-top: 45vh; font-family: monospace;">Système arrêté. Vous pouvez fermer cette fenêtre.</div>'
   }, 2000)
 }
-
 function resetSystem() {
   if (confirm("Voulez-vous vraiment réinitialiser l'ordinateur ? Toutes les données seront effacées.")) {
     const warningSound = new Audio("Assets/UI Sounds/warning.mp3")
     warningSound.play().catch((e) => console.log("Erreur audio:", e))
-
     showNotification("Réinitialisation en cours...")
-
     // Clear all localStorage
     localStorage.clear()
-
     setTimeout(() => {
       location.reload()
     }, 2000)
   }
 }
-
 // Island interactions
 function showAppGrid() {
   showNotification("Grille d'applications - Arrive bientôt !")
 }
-
 // Control Center Functions
 let controlCenterVisible = false
 let wifiEnabled = true
 let bluetoothEnabled = false
 let currentVolume = 50
-
 function showControlCenter() {
   const controlCenter = document.getElementById("controlCenter")
   controlCenterVisible = !controlCenterVisible
-
   if (controlCenterVisible) {
     controlCenter.classList.add("show")
     updateControlCenter()
@@ -1339,33 +1295,27 @@ function showControlCenter() {
     hideControlCenter()
   }
 }
-
 function hideControlCenter() {
   const controlCenter = document.getElementById("controlCenter")
   controlCenter.classList.remove("show")
   controlCenterVisible = false
   document.removeEventListener("click", closeControlCenterOnClickOutside)
 }
-
 function closeControlCenterOnClickOutside(e) {
   const controlCenter = document.getElementById("controlCenter")
   const rightIsland = document.querySelector(".right-island")
-
   if (!controlCenter.contains(e.target) && !rightIsland.contains(e.target)) {
     hideControlCenter()
   }
 }
-
 window.showControlCenter = showControlCenter
 window.hideControlCenter = hideControlCenter
 window.toggleWifi = toggleWifi
 window.toggleBluetooth = toggleBluetooth
-
 function toggleWifi() {
   wifiEnabled = !wifiEnabled
   const status = document.getElementById("wifiStatus")
   const card = document.getElementById("wifiCard")
-
   if (wifiEnabled) {
     status.textContent = "Connecté"
     card.classList.add("active")
@@ -1373,16 +1323,13 @@ function toggleWifi() {
     status.textContent = "Désactivé"
     card.classList.remove("active")
   }
-
   // Mettre à jour l'état du navigateur
   updateBrowserConnection()
 }
-
 function toggleBluetooth() {
   bluetoothEnabled = !bluetoothEnabled
   const status = document.getElementById("bluetoothStatus")
   const card = document.getElementById("bluetoothCard")
-
   if (bluetoothEnabled) {
     status.textContent = "Connecté"
     card.classList.add("active")
@@ -1391,7 +1338,6 @@ function toggleBluetooth() {
     card.classList.remove("active")
   }
 }
-
 function updateBrowserConnection() {
   const fakeBrowser = document.querySelector(".fake-browser")
   if (!wifiEnabled && fakeBrowser) {
@@ -1470,10 +1416,8 @@ function updateBrowserConnection() {
     document.getElementById("google").style.display = "block"
   }
 }
-
 function updateBrightness(value) {
   let overlay = document.getElementById("brightnessOverlay")
-
   if (!overlay) {
     overlay = document.createElement("div")
     overlay.id = "brightnessOverlay"
@@ -1489,16 +1433,13 @@ function updateBrightness(value) {
     `
     document.body.appendChild(overlay)
   }
-
   // Plus la valeur est basse, plus l'overlay noir est opaque
   const opacity = ((100 - value) / 100) * 0.9
   overlay.style.background = `rgba(0, 0, 0, ${opacity})`
 }
-
 function updateVolume(value) {
   currentVolume = value
 }
-
 function playSound(audioPath) {
   if (currentVolume > 0) {
     const audio = new Audio(audioPath)
@@ -1506,21 +1447,18 @@ function playSound(audioPath) {
     audio.play().catch((e) => console.log("Erreur audio:", e))
   }
 }
-
 function updateControlCenter() {
   // Update Wi-Fi
   const wifiStatus = document.getElementById("wifiStatus")
   const wifiCard = document.getElementById("wifiCard")
   wifiStatus.textContent = wifiEnabled ? "Connecté" : "Désactivé"
   if (wifiEnabled) wifiCard.classList.add("active")
-
   // Update Bluetooth
   const bluetoothStatus = document.getElementById("bluetoothStatus")
   const bluetoothCard = document.getElementById("bluetoothCard")
   bluetoothStatus.textContent = bluetoothEnabled ? "Connecté" : "Désactivé"
   if (bluetoothEnabled) bluetoothCard.classList.add("active")
 }
-
 // Dock icon bounce effect
 document.querySelectorAll(".dock-icon").forEach((icon) => {
   icon.addEventListener("click", function () {
@@ -1530,7 +1468,6 @@ document.querySelectorAll(".dock-icon").forEach((icon) => {
     }, 500)
   })
 })
-
 const bounceStyle = document.createElement("style")
 bounceStyle.textContent = `
     @keyframes iconBounce {
@@ -1543,16 +1480,13 @@ bounceStyle.textContent = `
     }
 `
 document.head.appendChild(bounceStyle)
-
 // Navigation simulée
 let currentSite = "google"
 let browserHistory = ["google"]
 let historyIndex = 0
-
 function navigateToUrl() {
   const urlBar = document.getElementById("urlBar")
   const url = urlBar.value.trim().toLowerCase()
-
   if (url.includes("youtube")) {
     loadSite("youtube")
   } else if (url.includes("github")) {
@@ -1563,27 +1497,22 @@ function navigateToUrl() {
     loadSite("google")
   }
 }
-
 function loadSite(siteName) {
   if (siteName === "github") {
     window.open("https://github.com/SillyFlisy/Archiware", "_blank")
     return
   }
-
   document.querySelectorAll(".fake-site").forEach((site) => {
     site.style.display = "none"
   })
-
   document.getElementById(siteName).style.display = "block"
   currentSite = siteName
-
   // Mettre à jour l'historique
   if (historyIndex < browserHistory.length - 1) {
     browserHistory = browserHistory.slice(0, historyIndex + 1)
   }
   browserHistory.push(siteName)
   historyIndex = browserHistory.length - 1
-
   // Mettre à jour l'URL
   const urlBar = document.getElementById("urlBar")
   const urls = {
@@ -1594,25 +1523,21 @@ function loadSite(siteName) {
   }
   urlBar.value = urls[siteName]
 }
-
 function goBack() {
   if (historyIndex > 0) {
     historyIndex--
     loadSite(browserHistory[historyIndex])
   }
 }
-
 function goForward() {
   if (historyIndex < browserHistory.length - 1) {
     historyIndex++
     loadSite(browserHistory[historyIndex])
   }
 }
-
 function refreshPage() {
   loadSite(currentSite)
 }
-
 // Navigation avec Entrée
 const urlBar = document.getElementById("urlBar")
 if (urlBar) {
@@ -1622,14 +1547,12 @@ if (urlBar) {
     }
   })
 }
-
 // Prevent context menu on long press (mobile)
 document.addEventListener("contextmenu", (e) => {
   if (isMobile) {
     e.preventDefault()
   }
 })
-
 // Enhanced mobile fingerprint unlock
 if (isMobile) {
   const fingerprintSensor = document.getElementById("fingerprintSensor")
@@ -1646,12 +1569,10 @@ if (isMobile) {
     )
   }
 }
-
 document.addEventListener("DOMContentLoaded", () => {
   // Make sure dock is visible on desktop
   const desktop = document.getElementById("desktop")
   const dock = document.querySelector(".dock")
-
   if (desktop && dock) {
     // Observer to show dock when desktop becomes active
     const observer = new MutationObserver((mutations) => {
@@ -1665,7 +1586,321 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       })
     })
-
     observer.observe(desktop, { attributes: true })
   }
 })
+// Function to save window state (position, size, etc.)
+function saveWindowState(windowId) {
+  const windowElement = document.getElementById(windowId)
+  if (!windowElement) return
+
+  const maximized = windowElement.classList.contains("maximized")
+  const rect = windowElement.getBoundingClientRect()
+
+  windowStates[windowId] = {
+    x: maximized ? Number.parseFloat(windowElement.style.left) : rect.left,
+    y: maximized ? Number.parseFloat(windowElement.style.top) : rect.top,
+    width: maximized ? Number.parseFloat(windowElement.style.width) : rect.width,
+    height: maximized ? Number.parseFloat(windowElement.style.height) : rect.height,
+    maximized: maximized,
+    zIndex: Number.parseInt(windowElement.style.zIndex, 10) || 0, // Store zIndex
+    display: windowElement.style.display, // Store display state
+  }
+
+  // Store in localStorage for persistence
+  try {
+    localStorage.setItem("archiware_window_states", JSON.stringify(windowStates))
+  } catch (e) {
+    console.error("Could not save window states to localStorage:", e)
+  }
+}
+
+// Function to load window states on startup
+function loadWindowStates() {
+  const savedStates = localStorage.getItem("archiware_window_states")
+  if (savedStates) {
+    try {
+      windowStates = JSON.parse(savedStates)
+      Object.keys(windowStates).forEach((windowId) => {
+        const windowElement = document.getElementById(windowId)
+        if (windowElement) {
+          const state = windowStates[windowId]
+
+          // Restore display state first
+          windowElement.style.display = state.display || "block"
+
+          // Restore zIndex if it was saved
+          if (state.zIndex !== undefined) {
+            windowElement.style.zIndex = state.zIndex
+            if (state.zIndex > windowZIndex) {
+              windowZIndex = state.zIndex // Update global zIndex if needed
+            }
+          }
+
+          if (state.display === "none") {
+            // If the window was hidden (minimized or closed), don't apply other styles yet
+            // It will be restored by minimizeWindow/restoreWindow or closeWindow logic
+            if (minimizedWindowsState.has(windowId)) {
+              // If it's marked as minimized, ensure it's hidden and won't animate in on load
+              windowElement.style.display = "none"
+            }
+            return
+          }
+
+          if (state.maximized) {
+            windowElement.classList.add("maximized")
+            windowElement.style.left = state.x + "px"
+            windowElement.style.top = state.y + "px"
+            windowElement.style.width = state.width + "px"
+            windowElement.style.height = state.height + "px"
+            windowElement.style.transform = "none"
+          } else {
+            windowElement.classList.remove("maximized")
+            // Use direct positioning for non-maximized windows if they were saved with specific positions
+            // If positions weren't explicitly saved for non-maximized state, default to center or existing positioning
+            if (
+              state.x !== undefined &&
+              state.y !== undefined &&
+              state.width !== undefined &&
+              state.height !== undefined
+            ) {
+              // Center the window if no specific position saved, or use saved position
+              const centerX = window.innerWidth / 2
+              const centerY = (window.innerHeight - 80) / 2
+              windowElement.style.left = state.x !== null ? `${state.x}px` : `${centerX}px`
+              windowElement.style.top = state.y !== null ? `${state.y}px` : `${centerY}px`
+              windowElement.style.width = state.width !== null ? `${state.width}px` : "700px"
+              windowElement.style.height = state.height !== null ? `${state.height}px` : "500px"
+              windowElement.style.transform = "translate(-50%, -50%)" // Keep centering for non-maximized
+            } else {
+              // If no state saved, ensure default centering
+              windowElement.style.left = "50%"
+              windowElement.style.top = "50%"
+              windowElement.style.transform = "translate(-50%, -50%)"
+            }
+          }
+
+          // Add to windowPositions if it's visible and not centered default
+          if (state.display !== "none" && state.x !== null && state.y !== null) {
+            windowPositions.push({
+              id: windowId,
+              x: Number.parseFloat(windowElement.style.left),
+              y: Number.parseFloat(windowElement.style.top),
+            })
+          }
+        }
+      })
+      // Ensure the last focused window remains on top
+      const lastFocusedId = localStorage.getItem("archiware_last_focused_window")
+      if (lastFocusedId) {
+        const lastFocusedWindow = document.getElementById(lastFocusedId)
+        if (lastFocusedWindow) {
+          focusWindow(lastFocusedWindow)
+        }
+      }
+    } catch (e) {
+      console.error("Could not load window states from localStorage:", e)
+    }
+  }
+}
+
+// Modify focusWindow to save last focused window
+// No changes needed here, already handled above.
+
+// Modify window event listeners to call saveWindowState
+document.addEventListener("DOMContentLoaded", () => {
+  // ... (existing DOMContentLoaded code)
+
+  // Add window event listeners to save state
+  document.querySelectorAll(".window").forEach((windowElement) => {
+    const header = windowElement.querySelector(".window-header")
+    let isDragging = false
+    let startX, startY, startLeft, startTop
+
+    // Mousedown for dragging
+    header.addEventListener("mousedown", (e) => {
+      if (e.target.closest(".window-controls")) return
+      isDragging = true
+      startX = e.clientX
+      startY = e.clientY
+      const rect = windowElement.getBoundingClientRect()
+      startLeft = rect.left
+      startTop = rect.top
+      windowElement.style.transform = "none"
+      focusWindow(windowElement) // Focus on drag start
+      e.preventDefault()
+    })
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return
+      const deltaX = e.clientX - startX
+      const deltaY = e.clientY - startY
+      windowElement.style.left = startLeft + deltaX + "px"
+      windowElement.style.top = startTop + deltaY + "px"
+      checkWindowOverlap()
+    })
+
+    document.addEventListener("mouseup", () => {
+      if (isDragging) {
+        isDragging = false
+        saveWindowState(windowElement.id) // Save state on drag end
+        setTimeout(checkWindowOverlap, 100)
+      }
+    })
+
+    // Touch events for mobile dragging
+    header.addEventListener("touchstart", (e) => {
+      if (e.target.closest(".window-controls")) return
+      isDragging = true
+      const touch = e.touches[0]
+      startX = touch.clientX
+      startY = touch.clientY
+      const rect = windowElement.getBoundingClientRect()
+      startLeft = rect.left
+      startTop = rect.top
+      windowElement.style.transform = "none"
+      focusWindow(windowElement) // Focus on touch start
+      e.preventDefault()
+    })
+
+    document.addEventListener("touchmove", (e) => {
+      if (!isDragging) return
+      const touch = e.touches[0]
+      const deltaX = touch.clientX - startX
+      const deltaY = touch.clientY - startY
+      windowElement.style.left = startLeft + deltaX + "px"
+      windowElement.style.top = startTop + deltaY + "px"
+      checkWindowOverlap()
+      e.preventDefault()
+    })
+
+    document.addEventListener("touchend", () => {
+      isDragging = false
+      saveWindowState(windowElement.id) // Save state on touch end
+      setTimeout(checkWindowOverlap, 100)
+    })
+
+    // Resize event listeners
+    const handles = windowElement.querySelectorAll(".resize-handle")
+    let isResizing = false
+    let resizeType = ""
+    let rStartX, rStartY, rStartWidth, rStartHeight, rStartLeft, rStartTop
+
+    handles.forEach((handle) => {
+      handle.addEventListener("mousedown", (e) => {
+        isResizing = true
+        resizeType = handle.classList[1]
+        rStartX = e.clientX
+        rStartY = e.clientY
+        const rect = windowElement.getBoundingClientRect()
+        rStartWidth = rect.width
+        rStartHeight = rect.height
+        rStartLeft = rect.left
+        rStartTop = rect.top
+        e.preventDefault()
+        e.stopPropagation()
+      })
+    })
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isResizing) return
+      const deltaX = e.clientX - rStartX
+      const deltaY = e.clientY - rStartY
+
+      let newWidth = rStartWidth
+      let newHeight = rStartHeight
+      let newLeft = rStartLeft
+      let newTop = rStartTop
+
+      if (resizeType.includes("e")) newWidth = rStartWidth + deltaX
+      if (resizeType.includes("w")) {
+        newWidth = rStartWidth - deltaX
+        newLeft = rStartLeft + deltaX
+      }
+      if (resizeType.includes("s")) newHeight = rStartHeight + deltaY
+      if (resizeType.includes("n")) {
+        newHeight = rStartHeight - deltaY
+        newTop = rStartTop + deltaY
+      }
+
+      // Enforce minimum sizes
+      newWidth = Math.max(300, newWidth)
+      newHeight = Math.max(200, newHeight)
+
+      windowElement.style.width = newWidth + "px"
+      windowElement.style.height = newHeight + "px"
+      windowElement.style.left = newLeft + "px"
+      windowElement.style.top = newTop + "px"
+      checkWindowOverlap()
+    })
+
+    document.addEventListener("mouseup", () => {
+      if (isResizing) {
+        isResizing = false
+        saveWindowState(windowElement.id) // Save state on resize end
+        setTimeout(checkWindowOverlap, 100)
+      }
+    })
+
+    // Add event listeners for minimize, maximize, and close buttons to save state
+    const closeBtn = windowElement.querySelector(".close-btn")
+    const maximizeBtn = windowElement.querySelector(".maximize-btn")
+    const minimizeBtn = windowElement.querySelector(".minimize-btn")
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => saveWindowState(windowElement.id))
+    }
+    if (maximizeBtn) {
+      maximizeBtn.addEventListener("click", () => saveWindowState(windowElement.id))
+    }
+    if (minimizeBtn) {
+      minimizeBtn.addEventListener("click", () => saveWindowState(windowElement.id))
+    }
+  })
+
+  // Load saved window states when the DOM is ready
+  loadWindowStates()
+
+  // Restore minimized windows that should be visible
+  minimizedWindowsState.forEach((windowId) => {
+    const windowElement = document.getElementById(windowId)
+    if (windowElement) {
+      // Ensure they are hidden initially if they were saved as minimized
+      windowElement.style.display = "none"
+    }
+  })
+
+  // Re-apply focus to the last focused window after loading states
+  const lastFocusedId = localStorage.getItem("archiware_last_focused_window")
+  if (lastFocusedId) {
+    const lastFocusedWindow = document.getElementById(lastFocusedId)
+    if (lastFocusedWindow && lastFocusedWindow.style.display !== "none") {
+      focusWindow(lastFocusedWindow)
+    }
+  }
+
+  // ... (rest of existing DOMContentLoaded code)
+})
+
+function switchSettingsTab(tabName, element) {
+  // Hide all sections
+  document.querySelectorAll("#settingsWindow .settings-section").forEach((section) => {
+    section.classList.remove("active")
+  })
+
+  // Remove active class from all nav items
+  document.querySelectorAll("#settingsWindow .settings-nav-item").forEach((item) => {
+    item.classList.remove("active")
+  })
+
+  // Show selected section
+  const selectedSection = document.querySelector(`#settingsWindow .settings-section[data-tab="${tabName}"]`)
+  if (selectedSection) {
+    selectedSection.classList.add("active")
+  }
+
+  // Add active class to clicked nav item
+  if (element) {
+    element.classList.add("active")
+  }
+}
